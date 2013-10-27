@@ -26,4 +26,4 @@ pretty prints the results in browser
 *    Evaluations
      - are executed as eval(expression) in meteor node.js container ([meteor-server-eval](https://github.com/gandev-de/meteor-server-eval))
 
-![ScreenShot](https://raw.github.com/gandev-de/meteor-server-console/screenshots/meteor-console.png)
+![ScreenShot](https://raw.github.com/gandev-de/meteor-server-console/master/screenshots/meteor-console.png)
