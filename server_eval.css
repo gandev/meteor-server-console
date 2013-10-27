@@ -24,3 +24,7 @@
   background-color: white;
   font-size: 1em;
 }
+
+.input-group-addon {
+  padding-left: 10px;
+}

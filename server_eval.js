@@ -1,5 +1,5 @@
 var ddp;
-var expressions = [];
+var expressionHistory = [];
 var exprCursor = 0;
 
 var STATES = {
@@ -12,15 +12,12 @@ function jumpToPageBottom() {
 }
 
 $(document).ready(function() {
-	var exprCursorState = "bottom";
-	var treeCount = 0;
-
 	var newExpression = function(expr) {
-		expressions = _.filter(expressions, function(e) {
+		expressionHistory = _.filter(expressionHistory, function(e) {
 			return e !== expr;
 		});
-		expressions.push(expr);
-		exprCursor = expressions.length - 1;
+		expressionHistory.push(expr);
+		exprCursor = expressionHistory.length - 1;
 		exprCursorState = "bottom";
 	};
 
@@ -67,29 +64,27 @@ $(document).ready(function() {
 	};
 
 	var newEntry = function(doc, _internal) {
-		var result_html;
-		var tree_name;
+		var result;
 		if (_.isObject(doc.result)) {
-			tree_name = "tree" + treeCount++;
-			result_html = '<div class="eval_trees" id="' + tree_name + '"></div>';
-		} else {
-			result_html = '<div>' + doc.result + '</div>';
-		}
-
-		var content = '<span>' + result_html + '</span>';
-		if (!_internal) {
-			content = '<span><p># ' + doc.expr + '</p></span>' + content;
-		}
-
-		var new_result = $('<div class="result">' + content + '</div>');
-		new_result.css("top", 0);
-		$(".output").append(new_result);
-
-		if (_.isObject(doc.result)) {
-			$('#' + tree_name).tree({
+			result = $('<div class="eval_trees"></div>');
+			result.tree({
 				data: objectToTreeData(doc.result, true)
 			});
+		} else {
+			result = $('<div>' + doc.result + '</div>');
+			if (doc.error) {
+				result.css("color", "red");
+			}
 		}
+
+		var entry = $('<div class="result"></div>');
+		if (!_internal) {
+			entry.append($('<span><p><strong>#</strong> ' + doc.expr + '</p></span>'));
+		}
+		entry.append(result);
+		entry.css("top", 0);
+		$(".output").append(entry);
+
 		jumpToPageBottom();
 	};
 
@@ -111,6 +106,7 @@ $(document).ready(function() {
 				newEntry(doc);
 			}
 		});
+		// poll server and reconnect when server down
 		var nIntervId = setInterval(function() {
 			ddp.send({
 				"ping": "h"
@@ -123,6 +119,7 @@ $(document).ready(function() {
 				init();
 			}
 		}, 2000);
+
 		ddp.subscribe("eval-results");
 	};
 
@@ -132,6 +129,9 @@ $(document).ready(function() {
 	};
 
 	init();
+
+	// console handler
+	var exprCursorState = "bottom";
 
 	$("#run_eval").bind('keyup', function(evt) {
 		if (evt.keyCode == 13) /* enter */ {
@@ -147,17 +147,17 @@ $(document).ready(function() {
 				if (exprCursorState === 'up') {
 					exprCursor--;
 				}
-				$("#run_eval").val(expressions[exprCursor]);
+				$("#run_eval").val(expressionHistory[exprCursor]);
 				exprCursorState = "up";
 			} else if (exprCursor === 0) {
-				$("#run_eval").val(expressions[exprCursor]);
+				$("#run_eval").val(expressionHistory[exprCursor]);
 			}
 		} else if (evt.keyCode == 40) /*down*/ {
-			if (exprCursor < expressions.length - 1) {
+			if (exprCursor < expressionHistory.length - 1) {
 				if (exprCursorState === 'down') {
 					exprCursor++;
 				}
-				$("#run_eval").val(expressions[exprCursor + 1]);
+				$("#run_eval").val(expressionHistory[exprCursor + 1]);
 				exprCursorState = "down";
 			} else {
 				$("#run_eval").val("");
