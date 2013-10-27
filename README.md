@@ -7,7 +7,7 @@ meteor-server-console
 
 ## Setup
 
-     - install extension in your chrome ([extensions](chrome://extensions))
+*    - install extension in your chrome ([extensions](chrome://extensions))
      - add smartpackage [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval) to your app
      - start your app and open "Meteor Console" tab in "Chrome DevTools"
 
