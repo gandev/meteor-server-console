@@ -1,0 +1,28 @@
+.output {
+  padding: 10px;
+}
+
+.result {
+  font-family: monospace;
+  font-size: 1em;
+}
+
+.eval_trees {
+  font-size: 0.8em;
+}
+
+.result > span > p {
+  margin: 0;
+  border-bottom: rgb(189, 187, 182);
+  border-bottom-style: ridge;
+  border-bottom-width: thin;
+}
+
+.result > span > div {
+  margin: 0;
+  border-bottom: rgb(189, 187, 182);
+  border-bottom-style: ridge;
+  border-bottom-width: thin;
+}
+
+
