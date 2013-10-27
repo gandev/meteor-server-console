@@ -1,13 +1,13 @@
 meteor-server-console
 =====================
 
-is a "Chrome DevTools" extension which connects to a meteor server (DDP)
+is a "Chrome DevTools" extension which connects to a [meteor](http://www.meteor.com) server (DDP)
 provides a virtual Server Console to evaluate expressions and
 pretty prints the results in browser
 
 ## Setup
 
-*    install extension in your chrome ([extensions](chrome://extensions))
+*    install extension in your chrome (see chrome://extensions)
 *    add smartpackage [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval) to your app
 *    start your app and open "Meteor Console" tab in "Chrome DevTools"
 
