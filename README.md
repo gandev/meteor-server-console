@@ -7,8 +7,8 @@ meteor-server-console
 
 ## Setup
 
-     - install extension in your chrome (see chrome://extensions/)
-     - add smartpackage https://github.com/gandev-de/meteor-server-eval to your app
+     - install extension in your chrome ([extensions](chrome://extensions))
+     - add smartpackage [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval) to your app
      - start your app and open "Meteor Console" tab in "Chrome DevTools"
 
 ## Use
@@ -24,4 +24,4 @@ meteor-server-console
      - select last evaluated expression with the UP and DOWN keys
 
 *    Evaluations
-     - are executed as eval(expression) in meteor node.js container (smartpackage "meteor-server-eval")
+     - are executed as eval(expression) in meteor node.js container ([meteor-server-eval](https://github.com/gandev-de/meteor-server-eval))
