@@ -24,22 +24,35 @@ $(document).ready(function() {
 		exprCursorState = "bottom";
 	};
 
-	var objectToTreeData = function(obj) {
+	var typeString = function(value) {
+		return _.isArray(value) ? "[Array[" + value.length + "]]" : "[Object]";
+	};
+
+	var objectToTreeData = function(obj, first) {
 		var tree_data = [];
 		if (_.isObject(obj)) {
 			for (var key in obj) {
 				var value = obj[key];
+				var sub_tree;
 				if (_.isObject(value)) {
-					var tmp = objectToTreeData(value);
-					var tmp_str = _.isArray(value) ? ": []" : ": {}";
-					tree_data.push({
-						'label': key + (tmp.length === 0 ? tmp_str : ""),
-						'children': tmp
-					});
+					sub_tree = {
+						'label': key + ": " + typeString(value),
+						'children': objectToTreeData(value, false)
+					};
 				} else {
-					tree_data.push({
+					sub_tree = {
 						'label': key + ": " + value
+					};
+				}
+
+				if (first) {
+					tree_data.length === 0 && tree_data.push({
+						'label': typeString(obj),
+						'children': []
 					});
+					tree_data[0].children.push(sub_tree);
+				} else {
+					tree_data.push(sub_tree);
 				}
 			}
 		}
@@ -67,10 +80,7 @@ $(document).ready(function() {
 
 		if (_.isObject(doc.result)) {
 			$('#' + tree_name).tree({
-				data: [{
-					'label': _.isArray(doc.result) ? "[Array]" : "[Object]",
-					'children': objectToTreeData(doc.result)
-				}]
+				data: objectToTreeData(doc.result, true)
 			});
 		}
 		jumpToPageBottom();
@@ -132,6 +142,8 @@ $(document).ready(function() {
 				}
 				$("#run_eval").val(expressions[exprCursor]);
 				exprCursorState = "up";
+			} else if (exprCursor === 0) {
+				$("#run_eval").val(expressions[exprCursor]);
 			}
 		} else if (evt.keyCode == 40) /*down*/ {
 			if (exprCursor < expressions.length - 1) {
