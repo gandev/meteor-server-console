@@ -4,7 +4,8 @@ var exprCursor = 0;
 
 var STATES = {
 	UP: "--> server up <--",
-	DOWN: "--> server down <--"
+	DOWN: "--> server down <--",
+	_current: null
 };
 
 function jumpToPageBottom() {
@@ -50,7 +51,7 @@ $(document).ready(function() {
 				}
 
 				if (first) {
-					tree_data.length === 0 && tree_data.push({
+					var _expr = tree_data.length === 0 && tree_data.push({
 						'label': typeString(obj),
 						'children': []
 					});
@@ -90,15 +91,21 @@ $(document).ready(function() {
 
 	var clearEntries = function() {
 		$.when(ddp.call("serverEval/clear")).then(function() {
-			treeCount = 0;
 			$(".result").remove();
 		});
 	};
 
+	var setState = function(state) {
+		if (STATES._current !== state) {
+			STATES._current = state;
+			newEntry({
+				result: state
+			}, true);
+		}
+	};
+
 	var setup = function() {
-		newEntry({
-			result: STATES.UP
-		}, true);
+		setState(STATES.UP);
 		//watch ServerEval.results()
 		ddp.watch("eval-results", function(doc, msg) {
 			if (msg === "added") {
@@ -113,9 +120,7 @@ $(document).ready(function() {
 			});
 			if (ddp.sock.readyState === 3) {
 				clearInterval(nIntervId);
-				newEntry({
-					result: STATES.DOWN
-				}, true);
+				setState(STATES.DOWN);
 				init();
 			}
 		}, 2000);
@@ -125,7 +130,14 @@ $(document).ready(function() {
 
 	var init = function() {
 		ddp = new MeteorDdp("ws://localhost:3000/websocket");
-		ddp.connect().then(setup);
+		ddp.connect().then(function() {
+			setup();
+		}, function() {
+			setTimeout(function() {
+				setState(STATES.DOWN);
+				init();
+			}, 2000);
+		});
 	};
 
 	init();
