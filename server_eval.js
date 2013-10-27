@@ -25,7 +25,14 @@ $(document).ready(function() {
 	};
 
 	var typeString = function(value) {
-		return _.isArray(value) ? "[Array[" + value.length + "]]" : "[Object]";
+		var type;
+		if (value.____TYPE____) {
+			type = value.____TYPE____;
+			delete value.____TYPE____;
+		} else {
+			type = _.isArray(value) ? "[Array[" + value.length + "]]" : "[Object]";
+		}
+		return type;
 	};
 
 	var objectToTreeData = function(obj, first) {
