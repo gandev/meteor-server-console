@@ -8,13 +8,20 @@
 }
 
 .eval_trees {
-  font-size: 0.8em;
+  font-size: 1em;
 }
 
-.result > span > p, .result > span > div {
+.result {
   margin: 0;
-  border-bottom: rgb(189, 187, 182);
-  border-bottom-style: ridge;
+  border-bottom: rgb(180, 180, 180);
+  border-bottom-style: solid;
+  border-bottom-width: thin;
+}
+
+.result .eval_expr {
+  margin: 0;
+  border-bottom: rgb(200, 200, 200);
+  border-bottom-style: dotted;
   border-bottom-width: thin;
 }
 

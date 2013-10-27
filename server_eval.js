@@ -23,14 +23,27 @@ $(document).ready(function() {
 	};
 
 	var typeString = function(value) {
-		var type;
+		var type = "unknown";
+		var type_style = 'style="color: ';
 		if (value.____TYPE____) {
 			type = value.____TYPE____;
+			if (type === "[Circular]") {
+				type_style += 'red;"';
+			} else {
+				type_style += 'blue;"';
+			}
 			delete value.____TYPE____;
+		} else if (_.isArray(value)) {
+			type = '[Array[' + value.length + ']]';
+			type_style += 'orange;"';
+		} else if (_.isObject(value)) {
+			type = '[Object]';
+			type_style += 'green;"';
 		} else {
-			type = _.isArray(value) ? "[Array[" + value.length + "]]" : "[Object]";
+			type = 'null';
+			type_style += 'red;"';
 		}
-		return type;
+		return '<span ' + type_style + '>' + type + "</span>";
 	};
 
 	var objectToTreeData = function(obj, first) {
@@ -46,7 +59,9 @@ $(document).ready(function() {
 					};
 				} else {
 					sub_tree = {
-						'label': key + ": " + value
+						'label': key + ": " + (_.isString(value) ?
+							'<span style="color: rgb(210, 180, 60);">"' + value + '"</span>' :
+							value)
 					};
 				}
 
@@ -69,7 +84,12 @@ $(document).ready(function() {
 		if (_.isObject(doc.result)) {
 			result = $('<div class="eval_trees"></div>');
 			result.tree({
-				data: objectToTreeData(doc.result, true)
+				data: objectToTreeData(doc.result, true),
+				onCreateLi: function(node, $li) {
+					// Append a link to the jqtree-element div.
+					var $title = $li.find('.jqtree-title');
+					$title.html($title.text());
+				}
 			});
 		} else {
 			result = $('<div>' + doc.result + '</div>');
@@ -80,10 +100,9 @@ $(document).ready(function() {
 
 		var entry = $('<div class="result"></div>');
 		if (!_internal) {
-			entry.append($('<span><p><strong>#</strong> ' + doc.expr + '</p></span>'));
+			entry.append($('<div class="eval_expr"><strong>#</strong> ' + doc.expr + '</div>'));
 		}
 		entry.append(result);
-		entry.css("top", 0);
 		$(".output").append(entry);
 
 		jumpToPageBottom();
