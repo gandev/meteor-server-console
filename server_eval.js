@@ -30,9 +30,11 @@ $(document).ready(function() {
 			for (var key in obj) {
 				var value = obj[key];
 				if (_.isObject(value)) {
+					var tmp = objectToTreeData(value);
+					var tmp_str = _.isArray(value) ? ": []" : ": {}";
 					tree_data.push({
-						'label': key,
-						'children': objectToTreeData(value)
+						'label': key + (tmp.length === 0 ? tmp_str : ""),
+						'children': tmp
 					});
 				} else {
 					tree_data.push({
