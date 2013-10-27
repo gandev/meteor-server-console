@@ -1,5 +1,5 @@
 .output {
-  padding: 10px;
+  padding-left: 10px;
 }
 
 .result {
@@ -11,18 +11,16 @@
   font-size: 0.8em;
 }
 
-.result > span > p {
+.result > span > p, .result > span > div {
   margin: 0;
   border-bottom: rgb(189, 187, 182);
   border-bottom-style: ridge;
   border-bottom-width: thin;
 }
 
-.result > span > div {
-  margin: 0;
-  border-bottom: rgb(189, 187, 182);
-  border-bottom-style: ridge;
-  border-bottom-width: thin;
+.input-group > span, .input-group > input {
+  font-family: monospace;
+  border: 0;
+  background-color: white;
+  font-size: 1em;
 }
-
-
