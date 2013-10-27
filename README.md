@@ -1,9 +1,9 @@
 meteor-server-console
 =====================
 
-*    is a "Chrome DevTools" extension which connects to a meteor server (DDP)
-     provides a virtual Server Console to evaluate expressions and
-     pretty prints the results in browser
+is a "Chrome DevTools" extension which connects to a meteor server (DDP)
+provides a virtual Server Console to evaluate expressions and
+pretty prints the results in browser
 
 ## Setup
 
