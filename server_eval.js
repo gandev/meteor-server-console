@@ -100,7 +100,10 @@ $(document).ready(function() {
 
 		var entry = $('<div class="result"></div>');
 		if (!_internal) {
-			entry.append($('<div class="eval_expr"><strong>#</strong> ' + doc.expr + '</div>'));
+			var $eval_expr = $('<div class="eval_expr"><strong>#</strong> ' + doc.expr + '</div>');
+			var $eval_scope = $('<span class="label label-primary scope">' + doc.scope + '</span>');
+			$eval_expr.append($eval_scope);
+			entry.append($eval_expr);
 		}
 		entry.append(result);
 		$(".output").append(entry);
@@ -161,16 +164,62 @@ $(document).ready(function() {
 
 	init();
 
+	//autocomplete
+	var availableTags = [
+		"se:use=",
+		"se:reset"
+	];
+
+	$("#run_eval").autocomplete({
+		source: availableTags,
+		position: {
+			my: "left bottom",
+			at: "left top",
+			collision: "flip"
+		},
+		minLength: 3,
+		open: function(event, ui) {
+			$("#run_eval").unbind('keyup', consoleHandler);
+		},
+		close: function(event, ui) {
+			//neccessary because selection with enter triggers run_eval keyup
+			setTimeout(function() {
+				$("#run_eval").bind('keyup', consoleHandler);
+			}, 500);
+		}
+	});
+
 	// console handler
 	var exprCursorState = "bottom";
+	var package_scope;
+	var $package_scope;
 
-	$("#run_eval").bind('keyup', function(evt) {
+	var handleCommand = function(cmd) {
+		if (cmd === ".clear") {
+			clearEntries();
+			return true;
+		} else if (cmd.match(/se:use=.*/)) /* e.g. se:use=custom-package */ {
+			package_scope = cmd.split("=")[1];
+			$package_scope = $('<span style="margin-left: 10px;" class="label label-primary">' + package_scope + '</span>');
+			if ($('#input_info span').length > 0) {
+				$('#input_info span').replaceWith($package_scope);
+			} else {
+				$('#input_info').append($package_scope);
+			}
+			return true;
+		} else if (cmd.match(/se:reset/)) /* e.g. se:use=custom-package */ {
+			$package_scope.remove();
+			package_scope = null;
+			return true;
+		}
+		return false;
+	};
+
+	var consoleHandler = function(evt) {
 		if (evt.keyCode == 13) /* enter */ {
 			var eval_str = $("#run_eval").val();
-			if (eval_str === ".clear") {
-				clearEntries();
-			} else {
-				ddp.call("serverEval/eval", [eval_str]);
+			if (!handleCommand(eval_str)) {
+				ddp.call("serverEval/eval", [eval_str, package_scope]);
 			}
 			$("#run_eval").val("");
 		} else if (evt.keyCode == 38) /*up*/ {
@@ -195,5 +244,7 @@ $(document).ready(function() {
 				exprCursorState = "bottom";
 			}
 		}
-	});
+	};
+
+	$("#run_eval").bind('keyup', consoleHandler);
 });

@@ -35,3 +35,8 @@
 .input-group-addon {
   padding-left: 10px;
 }
+
+.scope {
+  position: absolute;
+  right: 0;
+}

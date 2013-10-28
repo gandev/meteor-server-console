@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <!-- CSS -->
     <link href="lib/bootstrap/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="lib/jquery-ui.css" rel="stylesheet" media="screen">
     <link rel="stylesheet" href="lib/jqtree.css">
     <link href="server_eval.css" rel="stylesheet" media="screen">
     <!-- JS -->
     <script src="lib/underscore.js"></script>
     <script src="lib/jquery-2.0.3.js"></script>
+    <script src="lib/jquery-ui.js"></script>
     <script src="lib/tree.jquery.js"></script>
     <script src="lib/meteor-ddp.js"></script>
     <script src="server_eval.js"></script>
@@ -18,7 +20,7 @@
     <div class="output">
     </div>
     <div class="input-group" id="input_eval">
-      <span class="input-group-addon"><strong>#</strong></span>
+      <span class="input-group-addon" id="input_info"><strong>#</strong></span>
       <input type="text" class="form-control input-sm" placeholder="enter something to evaluate..." id="run_eval">
     </div>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
