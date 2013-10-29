@@ -29,10 +29,10 @@ $(document).ready(function() {
 			type = value.____TYPE____;
 			if (type === "[Circular]") {
 				type_style += 'red;"';
-			} else {
-				type_style += 'blue;"';
+			} else if (type === "[Error]") {
+				type += " " + value.err;
+				type_style += 'red;"';
 			}
-			delete value.____TYPE____;
 		} else if (_.isArray(value)) {
 			type = '[Array[' + value.length + ']]';
 			type_style += 'orange;"';
@@ -50,6 +50,7 @@ $(document).ready(function() {
 		var tree_data = [];
 		if (_.isObject(obj)) {
 			for (var key in obj) {
+				if (key === "____TYPE____") continue;
 				var value = obj[key];
 				var sub_tree;
 				if (_.isObject(value)) {
@@ -93,9 +94,6 @@ $(document).ready(function() {
 			});
 		} else {
 			result = $('<div>' + doc.result + '</div>');
-			if (doc.error) {
-				result.css("color", "red");
-			}
 		}
 
 		var entry = $('<div class="result"></div>');
@@ -131,7 +129,7 @@ $(document).ready(function() {
 		//watch ServerEval.results()
 		ddp.watch("eval-results", function(doc, msg) {
 			if (msg === "added") {
-				var _ = doc.expr && newExpression(doc.expr);
+				var _expr = doc.expr && newExpression(doc.expr);
 				newEntry(doc);
 			}
 		});
