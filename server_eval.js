@@ -1,4 +1,6 @@
 var ddp;
+var serverEvalPackages = [];
+var serverEvalVersion;
 var expressionHistory = [];
 var exprCursor = 0;
 
@@ -127,25 +129,34 @@ $(document).ready(function() {
 	var setup = function() {
 		setState(STATES.UP);
 		//watch ServerEval.results()
-		ddp.watch("eval-results", function(doc, msg) {
+		ddp.watch("server-eval-results", function(doc, msg) {
 			if (msg === "added") {
 				var _expr = doc.expr && newExpression(doc.expr);
 				newEntry(doc);
 			}
 		});
+		ddp.subscribe("server-eval-results");
+
+		//watch ServerEval.metadata()
+		ddp.watch("server-eval-metadata", function(doc, msg) {
+			if (msg === "added") {
+				serverEvalPackages = doc.serverEvalPackages;
+				serverEvalVersion = doc.version;
+			}
+		});
+		ddp.subscribe("server-eval-metadata");
+
 		// poll server and reconnect when server down
 		var nIntervId = setInterval(function() {
 			ddp.send({
 				"ping": "h"
 			});
-			if (ddp.sock.readyState === 3) {
+			if (ddp.sock.readyState === 3 /* CLOSED */ ) {
 				clearInterval(nIntervId);
 				setState(STATES.DOWN);
 				init();
 			}
 		}, 2000);
-
-		ddp.subscribe("eval-results");
 	};
 
 	var init = function() {
