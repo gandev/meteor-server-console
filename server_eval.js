@@ -254,20 +254,25 @@ var setupAutocomplete = function(supported_packages) {
 
 	//autocomplete
 	var availableTags = [
-		"se:use=",
-		"se:reset"
+		"se:reset",
+		"se:use="
 	];
 
 	availableTags = availableTags.concat(packageTags);
 
 	$("#run_eval").autocomplete({
-		source: availableTags,
 		position: {
 			my: "left bottom",
 			at: "left top",
 			collision: "flip"
 		},
 		minLength: 3,
+		source: function(request, response) {
+			var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
+			response($.grep(availableTags, function(item) {
+				return matcher.test(item);
+			}));
+		},
 		open: function(event, ui) {
 			$("#run_eval").unbind('keyup', consoleHandler);
 		},

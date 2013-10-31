@@ -44,17 +44,13 @@
 
 .error_location {
   background-color: rgb(180,180,180);
-  margin: 2px;
   padding: 2px;
   border-radius: 5px;
-  text-align: left;
 }
 
 .error_method {
   background-color: rgb(220,220,220);
-  margin-right: 10px;
-  margin: 1px;
+  margin-right: 5px;
   padding: 2px;
-  text-align: right;
   border-radius: 5px;
 }
