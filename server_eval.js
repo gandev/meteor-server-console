@@ -38,9 +38,10 @@ var typeHtml = function(value) {
 	if (value.____TYPE____) {
 		type = value.____TYPE____;
 		if (type === "[Circular]") {
+			type += "[" + value.path + "]";
 			type_style += 'red;"';
 		} else if (type === "[Error]") {
-			type += " " + value.err;
+			type += "[" + value.err + "]";
 			type_style += 'red;"';
 		} else if (type == "[Function]") {
 			type_style += 'blue;"';
@@ -81,6 +82,12 @@ var errorToTreeData = function(obj) {
 	return tree_data;
 };
 
+var wrapPrimitives = function(value) {
+	return _.isString(value) ?
+		'<span style="color: rgb(210, 180, 60);">"' + value + '"</span>' :
+		value;
+};
+
 //converts all kind of result objects in a http://mbraak.github.io/jqTree/ format
 //recursive function adding subtrees, subtree subtrees, ...
 var objectToTreeData = function(obj, top_level) {
@@ -88,6 +95,7 @@ var objectToTreeData = function(obj, top_level) {
 
 	var tree_data = [];
 	var isError = obj.____TYPE____ && obj.____TYPE____ === "[Error]";
+	var isCircular = obj.____TYPE____ && obj.____TYPE____ === "[Circular]";
 
 	if (isError) {
 		return errorToTreeData(obj);
@@ -95,8 +103,8 @@ var objectToTreeData = function(obj, top_level) {
 
 	for (var key in obj) {
 		var value = obj[key];
-		//dont show special result type property in tree
-		if (key === "____TYPE____") {
+		//dont show special result type and circular path property in tree
+		if (key === "____TYPE____" || isCircular && key === "path") {
 			continue;
 		}
 
@@ -110,9 +118,7 @@ var objectToTreeData = function(obj, top_level) {
 		} else {
 			//sub_tree without children (string, number, boolean)
 			sub_tree = {
-				'label': key + ": " + (_.isString(value) ?
-					'<span style="color: rgb(210, 180, 60);">"' + value + '"</span>' :
-					value)
+				'label': key + ": " + wrapPrimitives(value)
 			};
 		}
 
@@ -159,7 +165,7 @@ var newOutputEntry = function(doc, _internal) {
 			});
 		});
 	} else {
-		$content = $('<div>' + doc.result + '</div>');
+		$content = $('<div>' + (_internal ? doc.result : wrapPrimitives(doc.result)) + '</div>');
 	}
 
 	var $result_entry = $('<div class="result"></div>');
@@ -268,6 +274,7 @@ var setupAutocomplete = function(supported_packages) {
 		},
 		minLength: 3,
 		source: function(request, response) {
+			//only allow matches starting with the input (e.g. se:)
 			var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
 			response($.grep(availableTags, function(item) {
 				return matcher.test(item);
