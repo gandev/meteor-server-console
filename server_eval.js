@@ -4,6 +4,8 @@ var serverEvalVersion;
 var expressionHistory = [];
 var exprCursor = 0;
 
+var PORT = 3000;
+
 var SERVER_STATES = {
 	UP: "--> server up <--",
 	DOWN: "--> server down <--",
@@ -213,6 +215,10 @@ var internalCommand = function(cmd) {
 			$('#input_info').append($new_scope);
 		}
 		return true;
+	} else if (cmd.match(/se:port=\d*/)) /* e.g. se:use=custom-package */ {
+		PORT = cmd.split("=")[1] || PORT;
+		ddp.close();
+		return true;
 	} else if (cmd.match(/se:reset/)) {
 		$package_scope.remove();
 		package_scope = null;
@@ -260,6 +266,7 @@ var setupAutocomplete = function(supported_packages) {
 
 	//autocomplete
 	var availableTags = [
+		"se:port=",
 		"se:reset",
 		"se:use="
 	];
@@ -330,7 +337,7 @@ var setupDataTransfer = function() {
 
 //connect to the server or wait until a connection attempt is successful
 var init = function() {
-	ddp = new MeteorDdp("ws://localhost:3000/websocket");
+	ddp = new MeteorDdp("ws://localhost:" + PORT + "/websocket");
 	ddp.connect().then(function() {
 		setupDataTransfer();
 	}, /* no connection, try again in 2s */ function() {
