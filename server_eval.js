@@ -15,12 +15,6 @@ var SERVER_STATES = {
 var exprCursorState = "bottom";
 var package_scope;
 
-//scrolls the page to the bottom, 
-//is called to always see the input even if results are higher then window height
-var jumpToPageBottom = function() {
-	$('html, body').scrollTop($(document).height() - $(window).height());
-};
-
 //add expression to history or move it to the end + reset cursor/cursor state
 var newExpression = function(expr) {
 	expressionHistory = _.filter(expressionHistory, function(e) {
@@ -155,17 +149,19 @@ var newOutputEntry = function(doc, _internal) {
 				var $title = $li.find('.jqtree-title');
 				$title.html($title.text());
 			}
-		}).bind('tree.open', function(e) {
-			var max_width = 0;
-			$(e.target).find('.error_method').each(function() {
-				if (max_width < $(this).width()) {
-					max_width = $(this).width();
-				}
-			});
-			$(e.target).find('.error_method').css("margin-left", function() {
-				return max_width - $(this).width();
-			});
 		});
+
+		//calculate width TODO not sure yet how it should look ...
+		// var max_width = 0;
+		// $content.find('.error_method').each(function() {
+		// 	var width = $(this).getRealDimensions(true).width;
+		// 	if (max_width < width) {
+		// 		max_width = width;
+		// 	}
+		// });
+		// $content.find('.error_method').css("margin-left", function() {
+		// 	return max_width - $(this).getRealDimensions(true).width;
+		// });
 	} else {
 		$content = $('<div>' + (_internal ? doc.result : wrapPrimitives(doc.result)) + '</div>');
 	}
@@ -181,6 +177,7 @@ var newOutputEntry = function(doc, _internal) {
 	$result_entry.append($content);
 	$(".output").append($result_entry);
 
+	//is called to always see the input even if results are higher then window height
 	jumpToPageBottom();
 };
 
@@ -215,7 +212,7 @@ var internalCommand = function(cmd) {
 			$('#input_info').append($new_scope);
 		}
 		return true;
-	} else if (cmd.match(/se:port=\d*/)) /* e.g. se:use=custom-package */ {
+	} else if (cmd.match(/se:port=\d*/)) /* e.g. se:port=4000 */ {
 		PORT = cmd.split("=")[1] || PORT;
 		ddp.close();
 		return true;
