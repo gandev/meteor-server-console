@@ -3,12 +3,13 @@ var serverEvalPackages = [];
 var serverEvalVersion;
 var expressionHistory = [];
 var exprCursor = 0;
+var currentPort;
 
-var PORT = 3000;
+var PORT = 3000; //default like meteor
 
 var SERVER_STATES = {
-	UP: "--> server up <--",
-	DOWN: "--> server down <--",
+	UP: "<-- connection up -->",
+	DOWN: "<-- connection down -->",
 	_current: null
 };
 
@@ -150,18 +151,6 @@ var newOutputEntry = function(doc, _internal) {
 				$title.html($title.text());
 			}
 		});
-
-		//calculate width TODO not sure yet how it should look ...
-		// var max_width = 0;
-		// $content.find('.error_method').each(function() {
-		// 	var width = $(this).getRealDimensions(true).width;
-		// 	if (max_width < width) {
-		// 		max_width = width;
-		// 	}
-		// });
-		// $content.find('.error_method').css("margin-left", function() {
-		// 	return max_width - $(this).getRealDimensions(true).width;
-		// });
 	} else {
 		$content = $('<div>' + (_internal ? doc.result : wrapPrimitives(doc.result)) + '</div>');
 	}
@@ -192,7 +181,7 @@ var setServerState = function(state) {
 	if (SERVER_STATES._current !== state) {
 		SERVER_STATES._current = state;
 		newOutputEntry({
-			result: state
+			result: state + " [PORT: " + currentPort + "]"
 		}, true);
 	}
 };
@@ -212,9 +201,17 @@ var internalCommand = function(cmd) {
 			$('#input_info').append($new_scope);
 		}
 		return true;
-	} else if (cmd.match(/se:port=\d*/)) /* e.g. se:port=4000 */ {
+	} else if (cmd.match(/se:set-port=\d*/)) /* e.g. se:port=4000 */ {
 		PORT = cmd.split("=")[1] || PORT;
+		newOutputEntry({
+			result: '--> changed port to ' + PORT + ' <--'
+		}, true);
 		ddp.close();
+		return true;
+	} else if (cmd.match(/se:port\d*/)) /* e.g. se:port=4000 */ {
+		newOutputEntry({
+			result: '--> [PORT: ' + PORT + '] <--'
+		}, true);
 		return true;
 	} else if (cmd.match(/se:reset/)) {
 		$package_scope.remove();
@@ -224,7 +221,7 @@ var internalCommand = function(cmd) {
 	return false;
 };
 
-//console handler
+//console handler, catches: up, down and enter key
 var consoleHandler = function(evt) {
 	if (evt.keyCode == 13) /* enter */ {
 		var eval_str = $("#run_eval").val();
@@ -263,7 +260,8 @@ var setupAutocomplete = function(supported_packages) {
 
 	//autocomplete
 	var availableTags = [
-		"se:port=",
+		"se:set-port=",
+		"se:port",
 		"se:reset",
 		"se:use="
 	];
@@ -299,6 +297,7 @@ var setupAutocomplete = function(supported_packages) {
 //handler for a successful ddp connection
 //starts subscriptions and server polling
 var setupDataTransfer = function() {
+	currentPort = PORT;
 	setServerState(SERVER_STATES.UP);
 	//watch ServerEval.results()
 	ddp.watch("server-eval-results", function(doc, msg) {
