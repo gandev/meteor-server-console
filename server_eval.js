@@ -60,6 +60,27 @@ var typeHtml = function(value) {
 	return '<span ' + type_style + '>' + type + "</span>";
 };
 
+//converts error objects in jqTree format
+var errorToTreeData = function(obj) {
+	var tree_data = [];
+	var stacktrace = _.map(obj.stack || [], function(value, key, list) {
+		value = value.replace(/\s*at\s*/, '');
+		var call = value.replace(/\s+/, "@@@").split("@@@");
+		var error_method = '<span class="error_method">' +
+			(call.length === 2 ? call[0] : 'anonymous') + '</span>';
+		var error_location = '<span class="error_location">' +
+			(call.length === 2 ? call[1] : call[0]) + '</span>';
+		return {
+			'label': error_method + error_location
+		};
+	});
+	tree_data.push({
+		'label': typeHtml(obj),
+		'children': stacktrace
+	});
+	return tree_data;
+};
+
 //converts all kind of result objects in a http://mbraak.github.io/jqTree/ format
 //recursive function adding subtrees, subtree subtrees, ...
 var objectToTreeData = function(obj, top_level) {
@@ -68,13 +89,8 @@ var objectToTreeData = function(obj, top_level) {
 	var tree_data = [];
 	var isError = obj.____TYPE____ && obj.____TYPE____ === "[Error]";
 
-	//if error just return the msg in typeHtml and stacktrace
 	if (isError) {
-		tree_data.push({
-			'label': typeHtml(obj),
-			'children': objectToTreeData(obj.stack, false)
-		});
-		return tree_data;
+		return errorToTreeData(obj);
 	}
 
 	for (var key in obj) {
@@ -131,6 +147,16 @@ var newOutputEntry = function(doc, _internal) {
 				var $title = $li.find('.jqtree-title');
 				$title.html($title.text());
 			}
+		}).bind('tree.open', function(e) {
+			var max_width = 0;
+			$(e.target).find('.error_method').each(function() {
+				if (max_width < $(this).width()) {
+					max_width = $(this).width();
+				}
+			});
+			$(e.target).find('.error_method').css("margin-left", function() {
+				return max_width - $(this).width();
+			});
 		});
 	} else {
 		$content = $('<div>' + doc.result + '</div>');
@@ -173,14 +199,15 @@ var internalCommand = function(cmd) {
 		return true;
 	} else if (cmd.match(/se:use=.*/)) /* e.g. se:use=custom-package */ {
 		package_scope = cmd.split("=")[1];
-		var $new_scope = $('<span style="margin-left: 10px;" class="label label-primary">' + package_scope + '</span>');
+		var $new_scope = $('<span style="margin-left: 10px;" class="label label-primary">' +
+			package_scope + '</span>');
 		if ($package_scope.length > 0) {
 			$package_scope.replaceWith($new_scope);
 		} else {
 			$('#input_info').append($new_scope);
 		}
 		return true;
-	} else if (cmd.match(/se:reset/)) /* e.g. se:use=custom-package */ {
+	} else if (cmd.match(/se:reset/)) {
 		$package_scope.remove();
 		package_scope = null;
 		return true;
@@ -220,8 +247,8 @@ var consoleHandler = function(evt) {
 	}
 };
 
-var setupAutocomplete = function() {
-	var packageTags = _.map(serverEvalPackages, function(pkg) {
+var setupAutocomplete = function(supported_packages) {
+	var packageTags = _.map(supported_packages || [], function(pkg) {
 		return "se:use=" + pkg;
 	});
 
@@ -271,7 +298,7 @@ var setupDataTransfer = function() {
 		if (msg === "added") {
 			serverEvalPackages = doc.packages;
 			serverEvalVersion = doc.version;
-			setupAutocomplete();
+			setupAutocomplete(doc.supported_packages);
 		}
 	});
 	ddp.subscribe("server-eval-metadata");
