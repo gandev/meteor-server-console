@@ -8,10 +8,13 @@ var currentPort;
 var PORT = 3000; //default like meteor
 
 var SERVER_STATES = {
-	UP: "<-- connection up -->",
-	DOWN: "<-- connection down -->",
+	UP: "connection up",
+	DOWN: "connection down",
 	_current: null
 };
+var ERROR = 1;
+var MSG = 2;
+var SUCCESS = 3;
 
 var exprCursorState = "bottom";
 var package_scope;
@@ -155,8 +158,22 @@ var newOutputEntry = function(doc, _internal) {
 				$title.html($title.text());
 			}
 		});
+	} else if (_internal) {
+		var lbl = "default";
+		switch (_internal) {
+			case MSG:
+				lbl = "warning";
+				break;
+			case ERROR:
+				lbl = "danger";
+				break;
+			case SUCCESS:
+				lbl = "success";
+				break;
+		}
+		$content = $('<div class="internal_msg"><span class="label label-' + lbl + '">' + doc.result + '</span></div>');
 	} else {
-		$content = $('<div>' + (_internal ? doc.result : wrapPrimitives(doc.result)) + '</div>');
+		$content = $('<div>' + wrapPrimitives(doc.result) + '</div>');
 	}
 
 	var $result_entry = $('<div class="result"></div>');
@@ -165,6 +182,12 @@ var newOutputEntry = function(doc, _internal) {
 		var $eval_scope = $('<span class="label label-primary scope">' + doc.scope + '</span>');
 		$eval_expr.append($eval_scope);
 		$result_entry.append($eval_expr);
+	} else {
+		//show only last 4 internal messages
+		var internal_messages = $(".internal_msg");
+		if (internal_messages.length === 4) {
+			internal_messages[0].remove();
+		}
 	}
 
 	$result_entry.append($content);
@@ -185,8 +208,8 @@ var setServerState = function(state) {
 	if (SERVER_STATES._current !== state) {
 		SERVER_STATES._current = state;
 		newOutputEntry({
-			result: state + " [PORT: " + currentPort + "]"
-		}, true);
+			result: state + " [PORT: " + (currentPort || PORT) + "]"
+		}, state === SERVER_STATES.UP ? SUCCESS : ERROR);
 	}
 };
 
@@ -208,14 +231,14 @@ var internalCommand = function(cmd) {
 	} else if (cmd.match(/se:set-port=\d*/)) /* e.g. se:port=4000 */ {
 		PORT = cmd.split("=")[1] || PORT;
 		newOutputEntry({
-			result: '--> changed port to ' + PORT + ' <--'
-		}, true);
+			result: 'changed port to [PORT: ' + PORT + ']'
+		}, MSG);
 		ddp.close();
 		return true;
 	} else if (cmd.match(/se:port\d*/)) /* e.g. se:port=4000 */ {
 		newOutputEntry({
-			result: '--> [PORT: ' + PORT + '] <--'
-		}, true);
+			result: '[PORT: ' + PORT + ']'
+		}, MSG);
 		return true;
 	} else if (cmd.match(/se:reset/)) {
 		$package_scope.remove();
@@ -322,7 +345,7 @@ var setupDataTransfer = function() {
 	});
 	ddp.subscribe("server-eval-metadata");
 
-	// poll server and reconnect when server down
+	// poll server and try reinit when server down
 	var nIntervId = setInterval(function() {
 		ddp.send({
 			"ping": "h"
@@ -339,8 +362,10 @@ var setupDataTransfer = function() {
 var init = function() {
 	ddp = new MeteorDdp("ws://localhost:" + PORT + "/websocket");
 	ddp.connect().then(function() {
+		console.log("setupDataTransfer");
 		setupDataTransfer();
 	}, /* no connection, try again in 2s */ function() {
+		console.log("no setupDataTransfer");
 		setTimeout(function() {
 			setServerState(SERVER_STATES.DOWN);
 			init();

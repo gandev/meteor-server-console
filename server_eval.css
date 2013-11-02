@@ -42,6 +42,10 @@
   margin-top: 2px;
 }
 
+.internal_msg {
+  margin-bottom: 3px;
+}
+
 .error_location {
   background-color: rgb(180,180,180);
   padding: 2px;
