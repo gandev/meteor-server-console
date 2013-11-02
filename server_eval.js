@@ -5,6 +5,8 @@ var expressionHistory = [];
 var exprCursor = 0;
 var currentPort;
 
+var VERSION = "0.3";
+
 var PORT = 3000; //default like meteor
 
 var SERVER_STATES = {
@@ -355,11 +357,24 @@ var setupDataTransfer = function() {
 	});
 	ddp.subscribe("server-eval-results");
 
+	//3 second timeout than assume that server doesn't use server-eval
+	var metaDataTimeout = setTimeout(function() {
+		newOutputEntry({
+			result: "server-eval missing on server: [PORT: " + currentPort + ']'
+		}, ERROR);
+	}, 3000);
+
 	//watch ServerEval.metadata()
 	ddp.watch("server-eval-metadata", function(doc, msg) {
 		if (msg === "added") {
+			clearTimeout(metaDataTimeout);
 			serverEvalPackages = doc.packages;
 			serverEvalVersion = doc.version;
+			if (serverEvalVersion !== VERSION) {
+				newOutputEntry({
+					result: "server-eval [PORT: " + currentPort + ']' + " wrong version, expected: " + VERSION + " found: " + serverEvalVersion
+				}, ERROR);
+			}
 			setupAutocomplete(doc.supported_packages);
 		}
 	});
