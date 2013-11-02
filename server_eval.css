@@ -52,6 +52,14 @@
   border-radius: 5px;
 }
 
+.error_location.important {
+  background-color: rgb(200,140,140);
+}
+
+.error_location.internal, .error_method.internal {
+  opacity: 0.5;
+}
+
 .error_method {
   background-color: rgb(220,220,220);
   margin-right: 5px;

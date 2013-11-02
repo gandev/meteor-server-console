@@ -65,20 +65,37 @@ var typeHtml = function(value) {
 
 //converts error objects in jqTree format
 var errorToTreeData = function(obj) {
-	//TODO figure out what custom js files are
-	//and mark then in other color because they are most likely the error source
 	var tree_data = [];
+	var belowEval = false;
 	var stacktrace = _.map(obj.stack || [], function(value, key, list) {
 		value = value.replace(/\s*at\s*/, '');
-		var call = value.replace(/\s+/, "@@@").split("@@@");
-		var error_method = '<span class="error_method">' +
-			(call.length === 2 ? call[0] : 'anonymous') + '</span>';
-		var error_location = '<span class="error_location">' +
-			(call.length === 2 ? call[1] : call[0]) + '</span>';
+		var call = value.replace(/\s+/, "|").split("|");
+		var location = (call.length === 2 ? call[1] : call[0]);
+		var method = (call.length === 2 ? call[0] : 'anonymous');
+
+		if (method === "eval") {
+			belowEval = true;
+			return undefined; //remove the eval call
+		}
+
+		var special = "";
+		if (!belowEval) {
+			//above the eval call itself is most likely the important stuff
+			special = "important";
+		} else if (location.indexOf("server-eval") >= 0 || method.indexOf("__serverEval") >= 0) {
+			//internal server-eval overhead
+			special = "internal";
+		}
+
+		var error_method = '<span class="error_method ' + special + '">' +
+			method + '</span>';
+		var error_location = '<span class="error_location ' + special + '">' +
+			location + '</span>';
 		return {
 			'label': error_method + error_location
 		};
 	});
+	stacktrace = _.compact(stacktrace);
 	tree_data.push({
 		'label': typeHtml(obj),
 		'children': stacktrace
