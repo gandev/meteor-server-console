@@ -1,6 +1,6 @@
 {
 	"name": "meteor-server-console",
-	"version": "0.1",
+	"version": "0.3",
 	"description": "meteor server node console",
 	"devtools_page": "panel.html",
 	"options_page": "server_eval.html",

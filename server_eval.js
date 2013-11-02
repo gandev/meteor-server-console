@@ -183,10 +183,10 @@ var newOutputEntry = function(doc, _internal) {
 		$eval_expr.append($eval_scope);
 		$result_entry.append($eval_expr);
 	} else {
-		//show only last 4 internal messages
+		//show only last 3 internal messages TODO more?
 		var internal_messages = $(".internal_msg");
-		if (internal_messages.length === 4) {
-			internal_messages[0].remove();
+		if (internal_messages.length === 3) {
+			internal_messages.first().parent().remove();
 		}
 	}
 
