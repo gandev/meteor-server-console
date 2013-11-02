@@ -4,11 +4,11 @@
 
 .result {
   font-family: monospace;
-  font-size: 1em;
+  font-size: 0.9em;
 }
 
 .eval_trees {
-  font-size: 1em;
+  font-size: 0.9em;
 }
 
 .result {
@@ -29,7 +29,7 @@
   font-family: monospace;
   border: 0;
   background-color: white;
-  font-size: 1em;
+  font-size: 0.9em;
 }
 
 .input-group-addon {

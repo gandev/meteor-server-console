@@ -174,6 +174,9 @@ var newOutputEntry = function(doc, _internal) {
 				var $title = $li.find('.jqtree-title');
 				$title.html($title.text());
 			}
+		}).bind('tree.close', function(e) {
+			$("#run_eval").focus();
+			jumpToPageBottom();
 		});
 	} else if (_internal) {
 		var lbl = "default";
