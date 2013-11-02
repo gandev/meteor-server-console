@@ -37,6 +37,8 @@ var typeHtml = function(value) {
 		if (type === "[Circular]") {
 			type += "[" + value.path + "]";
 			type_style += 'red;"';
+		} else if (type.indexOf("[Object]") >= 0) {
+			type_style += 'green;"';
 		} else if (type === "[Error]") {
 			type += "[" + value.err + "]";
 			type_style += 'red;"';
@@ -60,6 +62,8 @@ var typeHtml = function(value) {
 
 //converts error objects in jqTree format
 var errorToTreeData = function(obj) {
+	//TODO figure out what custom js files are
+	//and mark then in other color because they are most likely the error source
 	var tree_data = [];
 	var stacktrace = _.map(obj.stack || [], function(value, key, list) {
 		value = value.replace(/\s*at\s*/, '');
@@ -328,7 +332,7 @@ var setupDataTransfer = function() {
 			setServerState(SERVER_STATES.DOWN);
 			init();
 		}
-	}, 2000);
+	}, 1000);
 };
 
 //connect to the server or wait until a connection attempt is successful
@@ -340,7 +344,7 @@ var init = function() {
 		setTimeout(function() {
 			setServerState(SERVER_STATES.DOWN);
 			init();
-		}, 2000);
+		}, 1000);
 	});
 };
 
