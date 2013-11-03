@@ -177,8 +177,10 @@ var newOutputEntry = function(doc, _internal) {
 				$title.html($title.text());
 			}
 		}).bind('tree.close', function(e) {
-			$("#run_eval").focus();
-			jumpToPageBottom();
+			if (!e.node.parent.parent) {
+				$("#run_eval").focus();
+				jumpToPageBottom();
+			}
 		});
 	} else if (_internal) {
 		var lbl = "default";
@@ -352,7 +354,12 @@ var setupDataTransfer = function() {
 	ddp.watch("server-eval-results", function(doc, msg) {
 		if (msg === "added") {
 			var _call = doc.expr && newExpression(doc.expr);
+			//TODO get rid of some old data automatically!?
+			//because of serious performance issue with really big results
+			//
+			//console.time("render-result-time");
 			newOutputEntry(doc);
+			//console.timeEnd("render-result-time");
 		}
 	});
 	ddp.subscribe("server-eval-results");
@@ -397,7 +404,6 @@ var setupDataTransfer = function() {
 var init = function() {
 	ddp = new MeteorDdp("ws://localhost:" + PORT + "/websocket");
 	ddp.connect().then(function() {
-		console.log("setupDataTransfer");
 		setupDataTransfer();
 	}, /* no connection, try again in 2s */ function() {
 		console.log("no setupDataTransfer");
