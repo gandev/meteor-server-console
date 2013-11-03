@@ -203,7 +203,7 @@ var newOutputEntry = function(doc, _internal) {
 	var $result_entry = $('<div class="result"></div>');
 	if (!_internal) {
 		var $eval_expr = $('<div class="eval_expr"><strong>#</strong> ' + doc.expr + '</div>');
-		var $eval_scope = $('<span class="label label-primary scope">' + doc.scope + '</span>');
+		var $eval_scope = $('<span class="label label-primary scope">' + doc.scope + " [" + doc.eval_exec_time + 'ms]</span>');
 		$eval_expr.append($eval_scope);
 		$result_entry.append($eval_expr);
 	} else {
