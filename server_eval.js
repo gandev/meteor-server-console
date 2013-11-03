@@ -312,6 +312,7 @@ var setupAutocomplete = function(supported_packages) {
 	//autocomplete
 	var availableTags = [
 		"se:set-port=",
+		"se:set-port=3000",
 		"se:port",
 		"se:reset",
 		"se:use="
