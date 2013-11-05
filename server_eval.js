@@ -25,6 +25,10 @@ ServerEval = {
 	metadataChanged: function(metadata) {
 		var metadatEvent = $.Event("server-eval-metadata", metadata);
 		$("body").trigger(metadatEvent);
+	},
+	watchChanged: function(watch_result) {
+		var watchEvent = $.Event("server-eval-watch", watch_result);
+		$("body").trigger(watchEvent);
 	}
 };
 
@@ -80,6 +84,16 @@ var _setupDataTransfer = function() {
 		}
 	});
 	ddp.subscribe("server-eval-metadata");
+
+	//watch ServerEval.watch()
+	ddp.watch("server-eval-watch", function(doc, msg) {
+		if (msg === "added" || msg === "changed") {
+			ServerEval.watchChanged({
+				watch_result: doc
+			});
+		}
+	});
+	ddp.subscribe("server-eval-watch");
 
 	// poll server and try reinit when server down
 	var nIntervId = setInterval(function() {

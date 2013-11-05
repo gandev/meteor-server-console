@@ -5,9 +5,6 @@ var expressionHistory = [];
 var exprCursor = 0;
 var exprCursorState = "bottom";
 
-var ERROR = 1;
-var MSG = 2;
-var SUCCESS = 3;
 //scope in which new expressions should be evaluated
 var package_scope;
 
@@ -85,6 +82,8 @@ var clearOutput = function() {
 	});
 };
 
+var watches = [];
+
 var internalCommand = function(cmd) {
 	var $package_scope = $('#input_info span');
 	if (cmd === ".clear") {
@@ -103,7 +102,7 @@ var internalCommand = function(cmd) {
 		}, true);
 		ddp.close();
 		return true;
-	} else if (cmd.match(/se:port\d*/)) /* e.g. se:port=4000 */ {
+	} else if (cmd.match(/se:port\d*/)) {
 		newOutputEntry({
 			result: '[PORT: ' + PORT + ']',
 			state_type: 'MSG'
@@ -112,6 +111,18 @@ var internalCommand = function(cmd) {
 	} else if (cmd.match(/se:reset/)) {
 		$package_scope.hide();
 		package_scope = null;
+		return true;
+	} else if (cmd.match(/se:new-watch=/)) /* e.g. se:new-watch=Date.now() */ {
+		var watch_expr = cmd.split("=")[1];
+		if (watch_expr) {
+			watches.push(function() {
+				ddp.call("serverEval/eval", [watch_expr, {
+					'package': package_scope,
+					watch: true
+				}]);
+			});
+		}
+		watches[watches.length - 1]();
 		return true;
 	}
 	return false;
@@ -122,7 +133,9 @@ var consoleHandler = function(evt) {
 	if (evt.keyCode == 13) /* enter */ {
 		var eval_str = $("#run_eval").val();
 		if (!internalCommand(eval_str)) {
-			ddp.call("serverEval/eval", [eval_str, package_scope]);
+			ddp.call("serverEval/eval", [eval_str, {
+				'package': package_scope
+			}]);
 		}
 		$("#run_eval").val("");
 	} else if (evt.keyCode == 38) /*up*/ {
@@ -161,6 +174,7 @@ var setupAutocomplete = function(supported_packages) {
 		"se:set-port=3000",
 		"se:port",
 		"se:reset",
+		"se:new-watch=",
 		"se:use="
 	];
 
@@ -207,6 +221,10 @@ $(document).ready(function() {
 
 	$('body').on('server-eval-metadata', function(evt) {
 		setupAutocomplete(evt.supported_packages);
+	});
+
+	$('body').on('server-eval-watch', function(evt) {
+		console.log(evt.watch_result);
 	});
 
 	$('body').on('server-eval-new-result', function(evt) {
