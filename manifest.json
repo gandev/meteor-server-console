@@ -1,9 +1,9 @@
 {
 	"name": "meteor-server-console",
 	"version": "0.3",
-	"description": "meteor server node console",
+	"description": "meteor server (node.js) console",
 	"devtools_page": "panel.html",
-	"options_page": "server_eval.html",
+	"options_page": "meteor_console.html",
 	"icons": {
 		"128": "meteor.png"
 	},
