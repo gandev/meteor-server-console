@@ -31,136 +31,6 @@ var newExpression = function(expr) {
 	exprCursorState = "bottom";
 };
 
-//return formatted html string with result type name and color style
-//server-eval smartpackage adds custom property:
-//  ____TYPE____ for special objects (e.g. Error, Function, ...) 
-var typeHtml = function(value) {
-	var type = "unknown";
-	var type_style = 'style="color: ';
-	if (value.____TYPE____) {
-		type = value.____TYPE____;
-		if (type === "[Circular]") {
-			type += "[" + value.path + "]";
-			type_style += 'red;"';
-		} else if (type.indexOf("[Object]") >= 0) {
-			type_style += 'green;"';
-		} else if (type === "[Error]") {
-			type += "[" + value.err + "]";
-			type_style += 'red;"';
-		} else if (type == "[Function]") {
-			type_style += 'blue;"';
-		} else {
-			type_style += 'gray;"';
-		}
-	} else if (_.isArray(value)) {
-		type = '[Array[' + value.length + ']]';
-		type_style += 'orange;"';
-	} else if (_.isObject(value)) {
-		type = '[Object]';
-		type_style += 'green;"';
-	} else {
-		type = 'null';
-		type_style += 'red;"';
-	}
-	return '<span ' + type_style + '>' + type + "</span>";
-};
-
-//converts error objects in jqTree format
-var errorToTreeData = function(obj) {
-	var tree_data = [];
-	var belowEval = false;
-	var stacktrace = _.map(obj.stack || [], function(value, key, list) {
-		value = value.replace(/\s*at\s*/, '');
-		var call = value.replace(/\s+/, "|").split("|");
-		var location = (call.length === 2 ? call[1] : call[0]);
-		var method = (call.length === 2 ? call[0] : 'anonymous');
-
-		if (method === "eval") {
-			belowEval = true;
-			return undefined; //remove the eval call
-		}
-
-		var special = "";
-		if (!belowEval) {
-			//above the eval call itself is most likely the important stuff
-			special = "important";
-		} else if (location.indexOf("server-eval") >= 0 || method.indexOf("__serverEval") >= 0) {
-			//internal server-eval overhead
-			special = "internal";
-		}
-
-		var error_method = '<span class="error_method ' + special + '">' +
-			method + '</span>';
-		var error_location = '<span class="error_location ' + special + '">' +
-			location + '</span>';
-		return {
-			'label': error_method + error_location
-		};
-	});
-	stacktrace = _.compact(stacktrace);
-	tree_data.push({
-		'label': typeHtml(obj),
-		'children': stacktrace
-	});
-	return tree_data;
-};
-
-var wrapPrimitives = function(value) {
-	return _.isString(value) ?
-		'<span style="color: rgb(210, 180, 60);">"' + value + '"</span>' :
-		value;
-};
-
-//converts all kind of result objects in a http://mbraak.github.io/jqTree/ format
-//recursive function adding subtrees, subtree subtrees, ...
-var objectToTreeData = function(obj, top_level) {
-	if (!_.isObject(obj)) return [];
-
-	var tree_data = [];
-	var isError = obj.____TYPE____ && obj.____TYPE____ === "[Error]";
-	var isCircular = obj.____TYPE____ && obj.____TYPE____ === "[Circular]";
-
-	if (isError) {
-		return errorToTreeData(obj);
-	}
-
-	for (var key in obj) {
-		var value = obj[key];
-		//dont show special result type and circular path property in tree
-		if (key === "____TYPE____" || isCircular && key === "path") {
-			continue;
-		}
-
-		var sub_tree;
-		if (_.isObject(value)) {
-			//sub_tree with children (objects)
-			sub_tree = {
-				'label': key + ": " + typeHtml(value),
-				'children': objectToTreeData(value, false)
-			};
-		} else {
-			//sub_tree without children (string, number, boolean)
-			sub_tree = {
-				'label': key + ": " + wrapPrimitives(value)
-			};
-		}
-
-		//top level label is just the typeHtml and properties are direct children
-		if (top_level) {
-			if (tree_data.length === 0) {
-				tree_data.push({
-					'label': typeHtml(obj),
-					'children': []
-				});
-			}
-			tree_data[0].children.push(sub_tree);
-		} else {
-			tree_data.push(sub_tree);
-		}
-	}
-	return tree_data;
-};
-
 //inserts a new output entry into the dom
 //   1. expr + scope + object tree (jqtree)
 //   2. expr + scope + plain div with non object result
@@ -168,8 +38,8 @@ var objectToTreeData = function(obj, top_level) {
 var newOutputEntry = function(doc, _internal) {
 	var $content;
 	if (_.isObject(doc.result)) {
-		$content = $('<div class="eval_trees"></div>');
-		$content.tree({
+		$content = $('#object_output_tmpl').clone();
+		$content.find('.eval_tree').tree({
 			data: objectToTreeData(doc.result, true),
 			onCreateLi: function(node, $li) {
 				// Append a link to the jqtree-element div.
@@ -195,27 +65,25 @@ var newOutputEntry = function(doc, _internal) {
 				lbl = "success";
 				break;
 		}
-		$content = $('<div class="internal_msg"><span class="label label-' + lbl + '">' + doc.result + '</span></div>');
-	} else {
-		$content = $('<div>' + wrapPrimitives(doc.result) + '</div>');
-	}
+		$content = $('#internal_output_tmpl').clone();
+		$content.find('.internal_msg span').addClass('label-' + lbl);
+		$content.find('.internal_msg span').html(doc.result);
 
-	var $result_entry = $('<div class="result"></div>');
-	if (!_internal) {
-		var $eval_expr = $('<div class="eval_expr"><strong>#</strong> ' + doc.expr + '</div>');
-		var $eval_scope = $('<span class="label label-primary scope">' + doc.scope + " [" + doc.eval_exec_time + 'ms]</span>');
-		$eval_expr.append($eval_scope);
-		$result_entry.append($eval_expr);
-	} else {
-		//show only last 3 internal messages TODO more?
-		var internal_messages = $(".internal_msg");
-		if (internal_messages.length === 3) {
-			internal_messages.first().parent().remove();
+		//show only last 3 internal messages
+		if ($(".output .internal_msg").length === 3) {
+			$(".output .internal_msg").first().parent().remove();
 		}
+	} else {
+		$content = $('#primitive_output_tmpl').clone();
+		$content.find('.eval_primitive').html(wrapPrimitives(doc.result));
 	}
+	$content.removeAttr('id'); //template id
 
-	$result_entry.append($content);
-	$(".output").append($result_entry);
+	//non internal have expression and scope
+	$content.find('.eval_expr span').html(doc.expr);
+	$content.find('.scope').html(doc.scope);
+
+	$(".output").append($content);
 
 	//is called to always see the input even if results are higher then window height
 	jumpToPageBottom();
@@ -223,7 +91,7 @@ var newOutputEntry = function(doc, _internal) {
 
 var clearOutput = function() {
 	ddp.call("serverEval/clear").then(function() {
-		$(".result").remove();
+		$(".output .result").remove();
 	});
 };
 
@@ -244,13 +112,8 @@ var internalCommand = function(cmd) {
 		return true;
 	} else if (cmd.match(/se:use=.*/)) /* e.g. se:use=custom-package */ {
 		package_scope = cmd.split("=")[1];
-		var $new_scope = $('<span style="margin-left: 10px;" class="label label-primary">' +
-			package_scope + '</span>');
-		if ($package_scope.length > 0) {
-			$package_scope.replaceWith($new_scope);
-		} else {
-			$('#input_info').append($new_scope);
-		}
+		$package_scope.html(package_scope);
+		$package_scope.show();
 		return true;
 	} else if (cmd.match(/se:set-port=\d*/)) /* e.g. se:port=4000 */ {
 		PORT = cmd.split("=")[1] || PORT;
@@ -265,7 +128,7 @@ var internalCommand = function(cmd) {
 		}, MSG);
 		return true;
 	} else if (cmd.match(/se:reset/)) {
-		$package_scope.remove();
+		$package_scope.hide();
 		package_scope = null;
 		return true;
 	}
@@ -407,7 +270,6 @@ var init = function() {
 	ddp.connect().then(function() {
 		setupDataTransfer();
 	}, /* no connection, try again in 2s */ function() {
-		console.log("no setupDataTransfer");
 		setTimeout(function() {
 			setServerState(SERVER_STATES.DOWN);
 			init();

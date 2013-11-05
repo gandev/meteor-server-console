@@ -7,7 +7,11 @@
   font-size: 0.9em;
 }
 
-.eval_trees {
+.string_value {
+  color: rgb(210, 180, 60);
+}
+
+.eval_tree {
   font-size: 0.9em;
 }
 
@@ -42,6 +46,11 @@
   margin-top: 2px;
 }
 
+.current_scope {
+  margin-left: 10px;
+  display: none;
+}
+
 .internal_msg {
   margin-bottom: 3px;
 }
@@ -52,11 +61,11 @@
   border-radius: 5px;
 }
 
-.error_location.important {
+.error_location .important {
   background-color: rgb(200,140,140);
 }
 
-.error_location.internal, .error_method.internal {
+.error_location .internal, .error_method .internal {
   opacity: 0.5;
 }
 
@@ -65,4 +74,8 @@
   margin-right: 5px;
   padding: 2px;
   border-radius: 5px;
+}
+
+#primitive_output_tmpl, #internal_output_tmpl, #object_output_tmpl {
+  display: none;
 }
