@@ -1,4 +1,4 @@
-var VERSION = "0.3";
+var VERSION = "0.4";
 
 var expressionHistory = [];
 //vars to track selection in last expression history
@@ -19,13 +19,13 @@ var newExpression = function(expr) {
 };
 
 //inserts a new output entry into the dom
-//   1. expr + scope + object tree (jqtree)
-//   2. expr + scope + plain div with non object result
-//   3. internal message (no expression/scope)
-var newOutputEntry = function(doc, _internal) {
-	var $content;
+//expr + scope + object tree (jqtree) / plain div with non object result
+var newOutputEntry = function(doc) {
+	var $content = $('#result_output_tmpl').clone();
+	$content.removeAttr('id'); //template id
+
 	if (_.isObject(doc.result)) {
-		$content = $('#object_output_tmpl').clone();
+		$content.find('.content').addClass('eval_tree');
 		$content.find('.eval_tree').tree({
 			data: objectToTreeData(doc.result, true),
 			onCreateLi: function(node, $li) {
@@ -39,36 +39,44 @@ var newOutputEntry = function(doc, _internal) {
 				jumpToPageBottom();
 			}
 		});
-	} else if (_internal) {
-		var lbl = "default";
-		switch (doc.state_type) {
-			case "MSG":
-				lbl = "warning";
-				break;
-			case "ERROR":
-				lbl = "danger";
-				break;
-			case "SUCCESS":
-				lbl = "success";
-				break;
-		}
-		$content = $('#internal_output_tmpl').clone();
-		$content.find('.internal_msg span').addClass('label-' + lbl);
-		$content.find('.internal_msg span').html(doc.result);
-
-		//show only last 3 internal messages
-		if ($(".output .internal_msg").length === 3) {
-			$(".output .internal_msg").first().parent().remove();
-		}
 	} else {
-		$content = $('#primitive_output_tmpl').clone();
+		$content.find('.content').addClass('eval_primitive');
 		$content.find('.eval_primitive').html(wrapPrimitives(doc.result));
 	}
-	$content.removeAttr('id'); //template id
 
-	//non internal have expression and scope
+	//expression and scope
 	$content.find('.eval_expr span').html(doc.expr);
 	$content.find('.scope').html(doc.scope);
+
+	$(".output").append($content);
+
+	//is called to always see the input even if results are higher then window height
+	jumpToPageBottom();
+};
+
+//inserts a new internal message into the dom
+var newInternalMessage = function(state) {
+	var $content = $('#internal_output_tmpl').clone();
+	$content.removeAttr('id'); //template id
+	var lbl = "default";
+	switch (state.type) {
+		case "MSG":
+			lbl = "warning";
+			break;
+		case "ERROR":
+			lbl = "danger";
+			break;
+		case "SUCCESS":
+			lbl = "success";
+			break;
+	}
+	$content.find('.internal_msg span').addClass('label-' + lbl);
+	$content.find('.internal_msg span').html(state.txt);
+
+	//show only last 3 internal messages
+	if ($(".output .internal_msg").length === 3) {
+		$(".output .internal_msg").first().parent().remove();
+	}
 
 	$(".output").append($content);
 
@@ -82,7 +90,15 @@ var clearOutput = function() {
 	});
 };
 
-var watches = [];
+var watchUpdater = function(expr) {
+	var watch_scope = package_scope;
+	return function() {
+		ddp.call("serverEval/eval", [expr, {
+			'package': watch_scope,
+			watch: true
+		}]);
+	};
+};
 
 var internalCommand = function(cmd) {
 	var $package_scope = $('#input_info span');
@@ -96,33 +112,27 @@ var internalCommand = function(cmd) {
 		return true;
 	} else if (cmd.match(/se:set-port=\d*/)) /* e.g. se:port=4000 */ {
 		PORT = cmd.split("=")[1] || PORT;
-		newOutputEntry({
-			result: 'changed port to [PORT: ' + PORT + ']',
-			state_type: "MSG"
-		}, true);
+		newInternalMessage({
+			txt: 'changed port to [PORT: ' + PORT + ']',
+			type: "MSG"
+		});
 		ddp.close();
 		return true;
 	} else if (cmd.match(/se:port\d*/)) {
-		newOutputEntry({
-			result: '[PORT: ' + PORT + ']',
-			state_type: 'MSG'
-		}, true);
+		newInternalMessage({
+			txt: '[PORT: ' + PORT + ']',
+			type: 'MSG'
+		});
 		return true;
 	} else if (cmd.match(/se:reset/)) {
 		$package_scope.hide();
 		package_scope = null;
 		return true;
-	} else if (cmd.match(/se:new-watch=/)) /* e.g. se:new-watch=Date.now() */ {
+	} else if (cmd.match(/se:watch=/)) /* e.g. se:new-watch=Date.now() */ {
 		var watch_expr = cmd.split("=")[1];
 		if (watch_expr) {
-			watches.push(function() {
-				ddp.call("serverEval/eval", [watch_expr, {
-					'package': package_scope,
-					watch: true
-				}]);
-			});
+			watchUpdater(watch_expr)();
 		}
-		watches[watches.length - 1]();
 		return true;
 	}
 	return false;
@@ -174,7 +184,7 @@ var setupAutocomplete = function(supported_packages) {
 		"se:set-port=3000",
 		"se:port",
 		"se:reset",
-		"se:new-watch=",
+		"se:watch=",
 		"se:use="
 	];
 
@@ -206,6 +216,8 @@ var setupAutocomplete = function(supported_packages) {
 	});
 };
 
+var watches = {};
+
 $(document).ready(function() {
 	//wire and initialize ui
 	$("#run_eval").bind('keyup', consoleHandler);
@@ -213,10 +225,10 @@ $(document).ready(function() {
 
 	//server eval events
 	$('body').on('server-eval-server-state', function(evt) {
-		newOutputEntry({
-			result: evt.state_txt,
-			state_type: evt.state_type
-		}, true);
+		newInternalMessage({
+			txt: evt.state_txt,
+			type: evt.state_type
+		});
 	});
 
 	$('body').on('server-eval-metadata', function(evt) {
@@ -224,7 +236,11 @@ $(document).ready(function() {
 	});
 
 	$('body').on('server-eval-watch', function(evt) {
-		console.log(evt.watch_result);
+		var watch = evt.watch_result;
+		watch.update = watchUpdater(watch.expr);
+		watches[watch._id] = watch;
+
+		console.log(watch);
 	});
 
 	$('body').on('server-eval-new-result', function(evt) {
