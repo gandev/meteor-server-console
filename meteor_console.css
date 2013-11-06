@@ -76,6 +76,6 @@
   border-radius: 5px;
 }
 
-#result_output_tmpl, #internal_output_tmpl {
+#result_output_tmpl, #internal_output_tmpl, #watch_tmpl {
   display: none;
 }

@@ -7,11 +7,13 @@
     <link href="lib/bootstrap/bootstrap.min.css" rel="stylesheet" media="screen">
     <link href="lib/jquery-ui.css" rel="stylesheet" media="screen">
     <link href="lib/jqtree.css" rel="stylesheet" media="screen">
+    <link href="lib/sidr/stylesheets/jquery.sidr.light.css" rel="stylesheet">
     <link href="meteor_console.css" rel="stylesheet" media="screen">
     <!-- JS -->
     <script src="lib/underscore.js"></script>
     <script src="lib/jquery-2.0.3.js"></script>
     <script src="lib/jquery-ui.js"></script>
+    <script src="lib/sidr/jquery.sidr.min.js"></script>
     <script src="lib/tree.jquery.js"></script>
     <script src="lib/helpers.js"></script>
     <script src="lib/meteor-ddp.js"></script>
@@ -20,7 +22,11 @@
     <script src="meteor_console.js"></script>
   </head>
   <body>
+    <a id="toggle_watch_view" href="#watch_view">watches...</a>
+    <div id="watch_view"></div>
+
     <div class="output"></div>
+
     <div class="input-group" id="input_eval">
       <span class="input-group-addon" id="input_info">
         <strong>#</strong>
@@ -40,6 +46,14 @@
       <span class="label label-primary scope"></span>
       <div class="eval_expr">
         <strong>#</strong>
+        <span></span>
+      </div>
+      <div class="content"></div>
+    </div>
+
+    <div id="watch_tmpl" class="watch">
+      <span class="label label-primary scope"></span>
+      <div class="eval_expr">
         <span></span>
       </div>
       <div class="content"></div>

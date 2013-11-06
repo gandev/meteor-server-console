@@ -1,6 +1,7 @@
 var VERSION = "0.4";
 
 var expressionHistory = [];
+var watches = {};
 //vars to track selection in last expression history
 var exprCursor = 0;
 var exprCursorState = "bottom";
@@ -16,6 +17,38 @@ var newExpression = function(expr) {
 	expressionHistory.push(expr);
 	exprCursor = expressionHistory.length - 1;
 	exprCursorState = "bottom";
+};
+
+var newWatchEntry = function(doc) {
+	var $content = $("#" + doc._id);
+	if ($content.length === 0) {
+		$content = $('#watch_tmpl').clone();
+		$content.attr('id', doc._id); //template id
+
+		$("#watch_view").append($content);
+	}
+
+	if (_.isObject(doc.result)) {
+		$content.find('.content').addClass('eval_tree');
+		$content.find('.eval_tree').tree({
+			data: objectToTreeData(doc.result, true),
+			onCreateLi: function(node, $li) {
+				// Append a link to the jqtree-element div.
+				var $title = $li.find('.jqtree-title');
+				$title.html($title.text());
+			}
+		});
+	} else {
+		$content.find('.content').addClass('eval_primitive');
+		$content.find('.eval_primitive').html(wrapPrimitives(doc.result));
+	}
+
+	//expression and scope
+	$content.find('.eval_expr span').html(doc.expr);
+	$content.find('.scope').html(doc.scope);
+
+	//is called to always see the input even if results are higher then window height
+	jumpToPageBottom();
 };
 
 //inserts a new output entry into the dom
@@ -216,12 +249,17 @@ var setupAutocomplete = function(supported_packages) {
 	});
 };
 
-var watches = {};
-
 $(document).ready(function() {
 	//wire and initialize ui
 	$("#run_eval").bind('keyup', consoleHandler);
 	setupAutocomplete();
+
+	//watch view
+	$('#toggle_watch_view').sidr({
+		name: 'watch_view',
+		side: 'right',
+		displace: false
+	});
 
 	//server eval events
 	$('body').on('server-eval-server-state', function(evt) {
@@ -240,7 +278,7 @@ $(document).ready(function() {
 		watch.update = watchUpdater(watch.expr);
 		watches[watch._id] = watch;
 
-		console.log(watch);
+		newWatchEntry(watch);
 	});
 
 	$('body').on('server-eval-new-result', function(evt) {
