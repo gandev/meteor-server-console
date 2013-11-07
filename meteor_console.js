@@ -81,7 +81,7 @@ var newOutputEntry = function(doc) {
 	$content.find('.eval_expr span').html(doc.expr);
 	$content.find('.scope').html(doc.scope);
 
-	$(".output").append($content);
+	$("#output").append($content);
 
 	//is called to always see the input even if results are higher then window height
 	jumpToPageBottom();
@@ -107,11 +107,11 @@ var newInternalMessage = function(state) {
 	$content.find('.internal_msg span').html(state.txt);
 
 	//show only last 3 internal messages
-	if ($(".output .internal_msg").length === 3) {
-		$(".output .internal_msg").first().parent().remove();
+	if ($("#output .internal_msg").length === 3) {
+		$("#output .internal_msg").first().parent().remove();
 	}
 
-	$(".output").append($content);
+	$("#output").append($content);
 
 	//is called to always see the input even if results are higher then window height
 	jumpToPageBottom();
@@ -119,7 +119,7 @@ var newInternalMessage = function(state) {
 
 var clearOutput = function() {
 	ddp.call("serverEval/clear").then(function() {
-		$(".output .result").remove();
+		$("#output .result").remove();
 	});
 };
 
@@ -254,11 +254,31 @@ $(document).ready(function() {
 	$("#run_eval").bind('keyup', consoleHandler);
 	setupAutocomplete();
 
+	var hide_watch = true;
+
 	//watch view
-	$('#toggle_watch_view').sidr({
-		name: 'watch_view',
-		side: 'right',
-		displace: false
+	$('#toggle_watch_view').bind('click', function() {
+		if (hide_watch) {
+			$('#console_view').animate({
+				right: 0
+			});
+			$('#watch_view').animate({
+				width: 0
+			}, function() {
+				$('#watch_view').hide();
+				hide_watch = false;
+			});
+		} else {
+			$('#watch_view').show();
+			$('#console_view').animate({
+				right: 300
+			});
+			$('#watch_view').animate({
+				width: 300
+			}, function() {
+				hide_watch = true;
+			});
+		}
 	});
 
 	//server eval events

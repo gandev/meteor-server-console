@@ -1,10 +1,5 @@
-.output {
+#output {
   padding-left: 10px;
-}
-
-.result {
-  font-family: monospace;
-  font-size: 0.9em;
 }
 
 .string_value {
@@ -15,14 +10,43 @@
   font-size: 0.9em;
 }
 
+#console_view, #watch_view {
+  position: absolute;
+}
+
+#console_view {
+  top: 0;
+  right: 300px;
+  left: 0;
+  bottom: 0;
+}
+
+#watch_view {
+  top: 0;
+  right: 0;
+  width: 300px;
+  bottom: 0;
+  padding-left: 20px;
+}
+
 .result {
+  font-family: monospace;
+  font-size: 0.9em;
   margin: 0;
   border-bottom: rgb(180, 180, 180);
   border-bottom-style: solid;
   border-bottom-width: thin;
 }
 
-.result .eval_expr {
+.watch {
+  font-family: monospace;
+  font-size: 0.9em;
+  border-bottom: rgb(180, 180, 180);
+  border-bottom-style: solid;
+  border-bottom-width: thin;
+}
+
+.eval_expr {
   margin: 0;
   border-bottom: rgb(200, 200, 200);
   border-bottom-style: dotted;
