@@ -11,6 +11,8 @@ var exprCursorState = "bottom";
 //scope in which new expressions should be evaluated
 var package_scope;
 
+var hiddenWatch = true;
+
 //optionally scrolls the page to the bottom of output if results are higher then window height
 var positioning = function(scroll) {
 	var output_height = $('#output').height();
@@ -202,6 +204,9 @@ var internalCommand = function(cmd) {
 		if (watch_expr) {
 			watchUpdater(watch_expr)();
 		}
+		if (hiddenWatch) {
+			toggleWatch();
+		}
 		return true;
 	} else if (cmd.match(/se:watch-view/)) {
 		toggleWatch();
@@ -289,8 +294,6 @@ var setupAutocomplete = function(supported_packages) {
 	});
 };
 
-var hiddenWatch = true;
-
 var toggleWatch = function() {
 	var width = $(window).width() * WATCH_STANDARD_WIDTH / 100;
 	if (!hiddenWatch) {
@@ -356,6 +359,9 @@ $(document).ready(function() {
 
 	$('body').on('server-eval-watch-removed', function(evt) {
 		$('#' + evt.watch_id).remove();
+		if ($('#' + evt.watch_id).length === 0) {
+			toggleWatch();
+		}
 	});
 
 	$('body').on('server-eval-new-result', function(evt) {
