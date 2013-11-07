@@ -29,6 +29,10 @@ ServerEval = {
 	watchChanged: function(watch_result) {
 		var watchEvent = $.Event("server-eval-watch", watch_result);
 		$("body").trigger(watchEvent);
+	},
+	watchRemoved: function(watch_result) {
+		var watchEvent = $.Event("server-eval-watch-removed", watch_result);
+		$("body").trigger(watchEvent);
 	}
 };
 
@@ -90,6 +94,10 @@ var _setupDataTransfer = function() {
 		if (msg === "added" || msg === "changed") {
 			ServerEval.watchChanged({
 				watch_result: doc
+			});
+		} else if (msg === "removed") {
+			ServerEval.watchRemoved({
+				watch_id: doc._id
 			});
 		}
 	});

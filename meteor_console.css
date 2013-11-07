@@ -10,7 +10,7 @@
   font-size: 0.9em;
 }
 
-#console_view, #watch_view, .scope {
+#console_view, #watch_view, .scope, .watch_controls {
   position: absolute;
 }
 
@@ -60,9 +60,18 @@
   padding-left: 10px;
 }
 
-.scope {
+.watch .scope {
+  right: 50px;
+  margin-top: 2px;
+}
+
+.result .scope {
   right: 2px;
   margin-top: 2px;
+}
+
+.watch_controls {
+  right: 2px;
 }
 
 .current_scope {

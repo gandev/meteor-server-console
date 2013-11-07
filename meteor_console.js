@@ -24,9 +24,10 @@ var positioning = function(scroll) {
 		});
 	} else {
 		var scroll_top = $(document).scrollTop();
+		var watch_top = $('#watch_view').position().top;
+		var isNotOnTop = scroll_top < watch_top;
+
 		var watch_height = $('#watch_view').height();
-		var watch_view_top = $('#watch_view').position().top;
-		var isNotOnTop = scroll_top < watch_view_top;
 		var isOutsideOutput = scroll_top + watch_height < output_height + input_height;
 		if (isOutsideOutput || isNotOnTop) {
 			$('#watch_view').animate({
@@ -46,19 +47,19 @@ var newExpression = function(expr) {
 	exprCursorState = "bottom";
 };
 
-var newWatchEntry = function(doc) {
-	var $content = $("#" + doc._id);
+var newWatchEntry = function(watch) {
+	var $content = $("#" + watch._id);
 	if ($content.length === 0) {
 		$content = $('#watch_tmpl').clone();
-		$content.attr('id', doc._id); //template id
+		$content.attr('id', watch._id); //template id
 
 		$("#watch_view").append($content);
 	}
 
-	if (_.isObject(doc.result)) {
+	if (_.isObject(watch.result)) {
 		$content.find('.content').addClass('eval_tree');
 		$content.find('.eval_tree').tree({
-			data: objectToTreeData(doc.result, true),
+			data: objectToTreeData(watch.result, true),
 			onCreateLi: function(node, $li) {
 				// Append a link to the jqtree-element div.
 				var $title = $li.find('.jqtree-title');
@@ -67,12 +68,21 @@ var newWatchEntry = function(doc) {
 		});
 	} else {
 		$content.find('.content').addClass('eval_primitive');
-		$content.find('.eval_primitive').html(wrapPrimitives(doc.result));
+		$content.find('.eval_primitive').html(wrapPrimitives(watch.result));
 	}
 
 	//expression and scope
-	$content.find('.eval_expr span').html(doc.expr);
-	$content.find('.scope').html(doc.scope);
+	$content.find('.eval_expr .expr').html(watch.expr);
+	$content.find('.scope').html(watch.scope);
+
+	//
+	$content.find('.watch_refresh').bind("click", function() {
+		watch.update();
+	});
+
+	$content.find('.watch_remove').bind("click", function() {
+		ddp.call('serverEval/removeWatch', [watch._id]);
+	});
 
 	//is called to always see the input even if results are higher then window height
 	positioning(true);
@@ -195,6 +205,7 @@ var internalCommand = function(cmd) {
 		return true;
 	} else if (cmd.match(/se:watch-view/)) {
 		toggleWatch();
+		return true;
 	}
 	return false;
 };
@@ -278,29 +289,31 @@ var setupAutocomplete = function(supported_packages) {
 	});
 };
 
-var hide_watch = false;
+var hiddenWatch = true;
 
 var toggleWatch = function() {
 	var width = $(window).width() * WATCH_STANDARD_WIDTH / 100;
-	if (hide_watch) {
+	if (!hiddenWatch) {
 		$('#console_view').animate({
 			right: 0
 		});
+
+		$('#watch_view').hide();
 		$('#watch_view').animate({
 			width: 0
 		}, function() {
-			$('#watch_view').hide();
-			hide_watch = false;
+			hiddenWatch = true;
 		});
 	} else {
-		$('#watch_view').show();
 		$('#console_view').animate({
 			right: width
 		});
+
 		$('#watch_view').animate({
 			width: width
 		}, function() {
-			hide_watch = true;
+			$('#watch_view').show();
+			hiddenWatch = false;
 		});
 	}
 };
@@ -339,6 +352,10 @@ $(document).ready(function() {
 		watches[watch._id] = watch;
 
 		newWatchEntry(watch);
+	});
+
+	$('body').on('server-eval-watch-removed', function(evt) {
+		$('#' + evt.watch_id).remove();
 	});
 
 	$('body').on('server-eval-new-result', function(evt) {
