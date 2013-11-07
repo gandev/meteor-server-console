@@ -10,23 +10,15 @@
   font-size: 0.9em;
 }
 
-#console_view, #watch_view {
+#console_view, #watch_view, .scope {
   position: absolute;
 }
 
-#console_view {
-  top: 0;
-  right: 300px;
-  left: 0;
-  bottom: 0;
-}
-
 #watch_view {
-  top: 0;
   right: 0;
-  width: 300px;
-  bottom: 0;
-  padding-left: 20px;
+  width: 0;
+  padding-left: 10px;
+  display: none;
 }
 
 .result {
@@ -41,9 +33,13 @@
 .watch {
   font-family: monospace;
   font-size: 0.9em;
+  border-left: rgb(180, 180, 180);
+  border-left-style: solid;
+  border-left-width: thin;
   border-bottom: rgb(180, 180, 180);
   border-bottom-style: solid;
   border-bottom-width: thin;
+  padding-left: 10px;
 }
 
 .eval_expr {
@@ -65,7 +61,6 @@
 }
 
 .scope {
-  position: absolute;
   right: 2px;
   margin-top: 2px;
 }

@@ -1,5 +1,7 @@
 var VERSION = "0.4";
 
+var WATCH_STANDARD_WIDTH = 30; //percent
+
 var expressionHistory = [];
 var watches = {};
 //vars to track selection in last expression history
@@ -8,6 +10,31 @@ var exprCursorState = "bottom";
 
 //scope in which new expressions should be evaluated
 var package_scope;
+
+//optionally scrolls the page to the bottom of output if results are higher then window height
+var positioning = function(scroll) {
+	var output_height = $('#output').height();
+	var input_height = $('#input_eval').height();
+
+	if (scroll) {
+		var top_pos = (output_height + input_height) - $(window).height();
+		$(document).scrollTop(top_pos);
+		$('#watch_view').animate({
+			'top': top_pos < 0 ? 0 : top_pos
+		});
+	} else {
+		var scroll_top = $(document).scrollTop();
+		var watch_height = $('#watch_view').height();
+		var watch_view_top = $('#watch_view').position().top;
+		var isNotOnTop = scroll_top < watch_view_top;
+		var isOutsideOutput = scroll_top + watch_height < output_height + input_height;
+		if (isOutsideOutput || isNotOnTop) {
+			$('#watch_view').animate({
+				'top': $(document).scrollTop()
+			});
+		}
+	}
+};
 
 //add expression to history or move it to the end + reset cursor/cursor state
 var newExpression = function(expr) {
@@ -48,7 +75,7 @@ var newWatchEntry = function(doc) {
 	$content.find('.scope').html(doc.scope);
 
 	//is called to always see the input even if results are higher then window height
-	jumpToPageBottom();
+	positioning(true);
 };
 
 //inserts a new output entry into the dom
@@ -69,7 +96,7 @@ var newOutputEntry = function(doc) {
 		}).bind('tree.close', function(e) {
 			if (!e.node.parent.parent) {
 				$("#run_eval").focus();
-				jumpToPageBottom();
+				positioning(true);
 			}
 		});
 	} else {
@@ -83,8 +110,7 @@ var newOutputEntry = function(doc) {
 
 	$("#output").append($content);
 
-	//is called to always see the input even if results are higher then window height
-	jumpToPageBottom();
+	positioning(true);
 };
 
 //inserts a new internal message into the dom
@@ -113,8 +139,7 @@ var newInternalMessage = function(state) {
 
 	$("#output").append($content);
 
-	//is called to always see the input even if results are higher then window height
-	jumpToPageBottom();
+	positioning(true);
 };
 
 var clearOutput = function() {
@@ -137,6 +162,7 @@ var internalCommand = function(cmd) {
 	var $package_scope = $('#input_info span');
 	if (cmd === ".clear") {
 		clearOutput();
+		positioning(true);
 		return true;
 	} else if (cmd.match(/se:use=.*/)) /* e.g. se:use=custom-package */ {
 		package_scope = cmd.split("=")[1];
@@ -167,6 +193,8 @@ var internalCommand = function(cmd) {
 			watchUpdater(watch_expr)();
 		}
 		return true;
+	} else if (cmd.match(/se:watch-view/)) {
+		toggleWatch();
 	}
 	return false;
 };
@@ -218,6 +246,7 @@ var setupAutocomplete = function(supported_packages) {
 		"se:port",
 		"se:reset",
 		"se:watch=",
+		"se:watch-view",
 		"se:use="
 	];
 
@@ -249,36 +278,47 @@ var setupAutocomplete = function(supported_packages) {
 	});
 };
 
+var hide_watch = false;
+
+var toggleWatch = function() {
+	var width = $(window).width() * WATCH_STANDARD_WIDTH / 100;
+	if (hide_watch) {
+		$('#console_view').animate({
+			right: 0
+		});
+		$('#watch_view').animate({
+			width: 0
+		}, function() {
+			$('#watch_view').hide();
+			hide_watch = false;
+		});
+	} else {
+		$('#watch_view').show();
+		$('#console_view').animate({
+			right: width
+		});
+		$('#watch_view').animate({
+			width: width
+		}, function() {
+			hide_watch = true;
+		});
+	}
+};
+
 $(document).ready(function() {
 	//wire and initialize ui
 	$("#run_eval").bind('keyup', consoleHandler);
 	setupAutocomplete();
 
-	var hide_watch = true;
+	//TODO toggle watch view on load for debugging only??
+	toggleWatch();
 
-	//watch view
-	$('#toggle_watch_view').bind('click', function() {
-		if (hide_watch) {
-			$('#console_view').animate({
-				right: 0
-			});
-			$('#watch_view').animate({
-				width: 0
-			}, function() {
-				$('#watch_view').hide();
-				hide_watch = false;
-			});
-		} else {
-			$('#watch_view').show();
-			$('#console_view').animate({
-				right: 300
-			});
-			$('#watch_view').animate({
-				width: 300
-			}, function() {
-				hide_watch = true;
-			});
-		}
+	var scrollTimeout;
+	$(window).bind("scroll", function() {
+		clearTimeout(scrollTimeout);
+		scrollTimeout = setTimeout(function() {
+			positioning();
+		}, 100);
 	});
 
 	//server eval events
