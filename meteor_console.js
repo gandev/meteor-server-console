@@ -60,6 +60,11 @@ var newWatchEntry = function(watch) {
 		$content.attr('id', watch._id); //template id
 
 		$("#watch_view").append($content);
+	} else {
+		$content.find('.watch_refresh').unbind();
+		$content.find('.watch_remove').unbind();
+		//TODO produced a flicker when using .tree() again
+		$content.find('.eval_tree').replaceWith($('<div class="eval_tree"></div>'));
 	}
 
 	if (_.isObject(watch.result)) {
@@ -164,11 +169,10 @@ var clearOutput = function() {
 	});
 };
 
-var watchUpdater = function(expr) {
-	var watch_scope = package_scope;
+var watchUpdater = function(watch) {
 	return function() {
-		ddp.call("serverEval/eval", [expr, {
-			'package': watch_scope,
+		ddp.call("serverEval/eval", [watch.expr, {
+			'package': watch.watch_scope,
 			watch: true
 		}]);
 	};
@@ -176,7 +180,7 @@ var watchUpdater = function(expr) {
 
 var internalCommand = function(cmd) {
 	var $package_scope = $('#input_info span');
-	newExpression(cmd); //TODO add internal commands to history?
+	//newExpression(cmd); //TODO add internal commands to history?
 	if (cmd === ".clear") {
 		clearOutput();
 		positioning(true);
@@ -207,7 +211,10 @@ var internalCommand = function(cmd) {
 	} else if (cmd.match(/se:watch=/)) /* e.g. se:new-watch=Date.now() */ {
 		var watch_expr = cmd.split("=")[1];
 		if (watch_expr) {
-			watchUpdater(watch_expr)();
+			watchUpdater({
+				expr: watch_expr,
+				watch_scope: package_scope
+			})();
 		}
 		return true;
 	} else if (cmd.match(/se:watch-view/)) {
@@ -299,23 +306,15 @@ var setupAutocomplete = function(supported_packages) {
 var setWidth = function(zero, cb) {
 	var width = $(window).width() * WATCH_STANDARD_WIDTH / 100;
 	$('#console_view').animate({
-		right: zero ? 0: width
+		right: zero ? 0 : width
 	});
 
 	$('#watch_view').animate({
-		width: zero ? 0: width
+		width: zero ? 0 : width
 	}, cb);
 
 	return width;
 };
-
-var resizeTimeout;
-$(window).resize(function() {
-	clearTimeout(resizeTimeout);
-	resizeTimeout = setTimeout(function() {
-		setWidth();
-	}, 100);
-});
 
 var toggleWatch = function() {
 	if (!hiddenWatch) {
@@ -345,6 +344,14 @@ $(document).ready(function() {
 		}, 100);
 	});
 
+	var resizeTimeout;
+	$(window).resize(function() {
+		clearTimeout(resizeTimeout);
+		resizeTimeout = setTimeout(function() {
+			setWidth();
+		}, 100);
+	});
+
 	//server eval events
 	$('body').on('server-eval-server-state', function(evt) {
 		newInternalMessage({
@@ -361,7 +368,7 @@ $(document).ready(function() {
 
 	$('body').on('server-eval-watch', function(evt) {
 		var watch = evt.watch_result;
-		watch.update = watchUpdater(watch.expr);
+		watch.update = watchUpdater(watch);
 		watches[watch._id] = watch;
 
 		newWatchEntry(watch);
