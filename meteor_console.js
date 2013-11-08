@@ -359,7 +359,7 @@ $(document).ready(function() {
 
 	$('body').on('server-eval-watch-removed', function(evt) {
 		$('#' + evt.watch_id).remove();
-		if ($('#' + evt.watch_id).length === 0) {
+		if ($('#watch_view .watch').length === 0) {
 			toggleWatch();
 		}
 	});
