@@ -50,6 +50,10 @@ var newExpression = function(expr) {
 };
 
 var newWatchEntry = function(watch) {
+	if (hiddenWatch) {
+		toggleWatch();
+	}
+
 	var $content = $("#" + watch._id);
 	if ($content.length === 0) {
 		$content = $('#watch_tmpl').clone();
@@ -172,6 +176,7 @@ var watchUpdater = function(expr) {
 
 var internalCommand = function(cmd) {
 	var $package_scope = $('#input_info span');
+	newExpression(cmd); //TODO add internal commands to history?
 	if (cmd === ".clear") {
 		clearOutput();
 		positioning(true);
@@ -203,9 +208,6 @@ var internalCommand = function(cmd) {
 		var watch_expr = cmd.split("=")[1];
 		if (watch_expr) {
 			watchUpdater(watch_expr)();
-		}
-		if (hiddenWatch) {
-			toggleWatch();
 		}
 		return true;
 	} else if (cmd.match(/se:watch-view/)) {
@@ -294,27 +296,36 @@ var setupAutocomplete = function(supported_packages) {
 	});
 };
 
-var toggleWatch = function() {
+var setWidth = function(zero, cb) {
 	var width = $(window).width() * WATCH_STANDARD_WIDTH / 100;
-	if (!hiddenWatch) {
-		$('#console_view').animate({
-			right: 0
-		});
+	$('#console_view').animate({
+		right: zero ? 0: width
+	});
 
+	$('#watch_view').animate({
+		width: zero ? 0: width
+	}, cb);
+
+	return width;
+};
+
+var resizeTimeout;
+$(window).resize(function() {
+	clearTimeout(resizeTimeout);
+	resizeTimeout = setTimeout(function() {
+		setWidth();
+	}, 100);
+});
+
+var toggleWatch = function() {
+	if (!hiddenWatch) {
 		$('#watch_view').hide();
-		$('#watch_view').animate({
-			width: 0
-		}, function() {
+
+		setWidth(true, function() {
 			hiddenWatch = true;
 		});
 	} else {
-		$('#console_view').animate({
-			right: width
-		});
-
-		$('#watch_view').animate({
-			width: width
-		}, function() {
+		setWidth(false, function() {
 			$('#watch_view').show();
 			hiddenWatch = false;
 		});
@@ -325,9 +336,6 @@ $(document).ready(function() {
 	//wire and initialize ui
 	$("#run_eval").bind('keyup', consoleHandler);
 	setupAutocomplete();
-
-	//TODO toggle watch view on load for debugging only??
-	toggleWatch();
 
 	var scrollTimeout;
 	$(window).bind("scroll", function() {
@@ -346,6 +354,8 @@ $(document).ready(function() {
 	});
 
 	$('body').on('server-eval-metadata', function(evt) {
+		$('#watch_view .watch').remove();
+
 		setupAutocomplete(evt.supported_packages);
 	});
 

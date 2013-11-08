@@ -92,8 +92,10 @@ var _setupDataTransfer = function() {
 	//watch ServerEval.watch()
 	ddp.watch("server-eval-watch", function(doc, msg) {
 		if (msg === "added" || msg === "changed") {
+			var watch_result = JSON.parse(doc.result);
+			watch_result._id = doc._id;
 			ServerEval.watchChanged({
-				watch_result: doc
+				watch_result: watch_result
 			});
 		} else if (msg === "removed") {
 			ServerEval.watchRemoved({
