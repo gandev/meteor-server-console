@@ -19,18 +19,21 @@ var positioning = function(scroll) {
 	var input_height = $('#input_eval').height();
 
 	if (scroll) {
+		//scroll to output end
 		var top_pos = (output_height + input_height) - $(window).height();
 		$(document).scrollTop(top_pos);
 		$('#watch_view').animate({
 			'top': top_pos < 0 ? 0 : top_pos
 		});
 	} else {
+		//move watch view to the top of the current window, used when scrolling
 		var scroll_top = $(document).scrollTop();
 		var watch_top = $('#watch_view').position().top;
 		var isNotOnTop = scroll_top < watch_top;
 
 		var watch_height = $('#watch_view').height();
 		var isOutsideOutput = scroll_top + watch_height < output_height + input_height;
+		//prevent moving if watch view is outside of the output, to allow scrolling in watch view
 		if (isOutsideOutput || isNotOnTop) {
 			$('#watch_view').animate({
 				'top': $(document).scrollTop()
@@ -321,7 +324,7 @@ var setupAutocomplete = function(supported_packages) {
 		"se:port",
 		"se:reset",
 		"se:watch=",
-		"se:watch-view30",
+		"se:watch-view",
 		"se:watch-view60",
 		"se:use="
 	];
@@ -384,7 +387,8 @@ $(document).ready(function() {
 	});
 
 	$('body').on('server-eval-metadata', function(evt) {
-		$('#watch_view .watch').remove();
+		$('#watch_view .watch').remove(); //use metadata as a starup hook
+		//TODO close watch, but at the moment it would also close on server restart
 
 		setupAutocomplete(evt.supported_packages);
 	});
