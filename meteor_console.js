@@ -12,6 +12,7 @@ var exprCursorState = "bottom";
 var package_scope;
 
 var hiddenWatch = true;
+var show_autocomplete = false;
 
 //optionally scrolls the page to the bottom of output if results are higher then window height
 var positioning = function(scroll) {
@@ -179,6 +180,36 @@ var newInternalMessage = function(state) {
 	positioning(true);
 };
 
+var newAutocompleteEntry = function(completions) {
+	var $content = $('#autocomplete_output_tmpl').clone();
+	$content.removeAttr('id'); //template id
+
+	var $table = $content.find('.autocomplete table tbody');
+	var column_count = 0;
+	var $table_row;
+	_.each(completions || [], function(value) {
+		if (column_count === 0) {
+			$table_row = $('<tr></tr>');
+		}
+
+		$table_row.append('<td>' + value + '</td>');
+		column_count++;
+
+		if (column_count === 4) {
+			column_count = 0;
+			$table.append($table_row);
+			$table_row = null;
+		}
+	});
+	if ($table_row) {
+		$table.append($table_row);
+	}
+
+	$("#output").append($content);
+
+	positioning(true);
+};
+
 var clearOutput = function() {
 	ddp.call("serverEval/clear").then(function() {
 		$("#output .result").remove();
@@ -301,12 +332,19 @@ var consoleHandler = function(evt) {
 			exprCursorState = "bottom";
 		}
 	} else if (evt.ctrlKey && evt.keyCode === 32) {
+		show_autocomplete = true;
 		eval_str = eval_str || "this";
-		if (eval_str.match(/.*\./)) {
-			eval_str = eval_str.substr(0, eval_str.length - 1);
+		var dotIdx = eval_str.lastIndexOf(".");
+		var search;
+		if (dotIdx >= 0) {
+			search = eval_str.substr(dotIdx);
+			eval_str = eval_str.substring(0, dotIdx);
 		}
-		ddp.call("serverEval/eval", ['_.keys(' + eval_str + ')', {
-			'package': package_scope
+
+		ddp.call("serverEval/eval", [eval_str, {
+			'package': package_scope,
+			autocomplete: true,
+			search: search && search.length > 1 ? search.substr(1) : undefined
 		}]);
 	}
 };
@@ -414,7 +452,12 @@ $(document).ready(function() {
 		//because of serious performance issue with really big results
 		//
 		//console.time("render-result-time");
-		newOutputEntry(evt.result_doc);
+		if (evt.result_doc.autocomplete && show_autocomplete) {
+			//prevent to show autocompletes on reload
+			newAutocompleteEntry(evt.result_doc.result);
+		} else if (!evt.result_doc.autocomplete) {
+			newOutputEntry(evt.result_doc);
+		}
 		//console.timeEnd("render-result-time");
 	});
 

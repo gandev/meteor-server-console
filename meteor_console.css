@@ -70,6 +70,11 @@
   margin-top: 2px;
 }
 
+.table tbody > tr > td {
+  padding: 0;
+  font-size: 0.8em;
+}
+
 .watch_controls {
   right: 2px;
 }
@@ -104,6 +109,6 @@
   border-radius: 5px;
 }
 
-#result_output_tmpl, #internal_output_tmpl, #watch_tmpl {
+#result_output_tmpl, #internal_output_tmpl, #watch_tmpl, #autocomplete_output_tmpl {
   display: none;
 }
