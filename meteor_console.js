@@ -218,16 +218,20 @@ var internalCommand = function(cmd) {
 		}
 		return true;
 	} else if (cmd.match(/se:watch-view/)) {
-		var percent = cmd.substr(13);
-		if (percent === "60" && WATCH_WIDTH === 30) {
-			WATCH_WIDTH = 60;
-			setWidth();
-		} else if (percent === "30" && WATCH_WIDTH === 60) {
+		var width = +cmd.substr(13);
+		if (isNaN(width)) return true;
+
+		var width_old = WATCH_WIDTH;
+		if (width === 0) {
 			WATCH_WIDTH = 30;
-			setWidth();
-		} else if (percent === "60" && WATCH_WIDTH === 60 ||
-			percent === "30" && WATCH_WIDTH === 30) {
+		} else {
+			WATCH_WIDTH = width;
+		}
+
+		if (width === 0 || WATCH_WIDTH === width_old || hiddenWatch) {
 			toggleWatch();
+		} else if (WATCH_WIDTH !== width_old) {
+			setWidth();
 		}
 		return true;
 	}
