@@ -240,8 +240,8 @@ var internalCommand = function(cmd) {
 
 //console handler, catches: up, down and enter key
 var consoleHandler = function(evt) {
+	var eval_str = $("#run_eval").val();
 	if (evt.keyCode == 13) /* enter */ {
-		var eval_str = $("#run_eval").val();
 		if (!internalCommand(eval_str)) {
 			ddp.call("serverEval/eval", [eval_str, {
 				'package': package_scope
@@ -269,6 +269,11 @@ var consoleHandler = function(evt) {
 			$("#run_eval").val("");
 			exprCursorState = "bottom";
 		}
+	} else if (evt.ctrlKey && evt.keyCode === 32) {
+		eval_str = eval_str || "this";
+		ddp.call("serverEval/eval", ['_.keys(' + eval_str + ')', {
+			'package': package_scope
+		}]);
 	}
 };
 
