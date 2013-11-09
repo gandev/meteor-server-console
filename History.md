@@ -1,14 +1,13 @@
 ## before v1.0
 
 - solution for performance issues with very large objects
-> nprogress client
+  > nprogress loading progress
+- EJSON support
 
 ## v0.4 - watch it
 
-- watch feature
-
-current Bugs:
-- tree opens multiple times after other deleted
+- watch expressions, new watch view + commands
+- STRG + SPACE triggers evaluation of _.keys
 
 ## v0.3 - more infos
 

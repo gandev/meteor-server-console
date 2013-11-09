@@ -39,6 +39,19 @@ var positioning = function(scroll) {
 	}
 };
 
+var setWidth = function(zero, cb) {
+	var width = $(window).width() * WATCH_WIDTH / 100;
+	$('#console_view').animate({
+		right: zero ? 0 : width
+	});
+
+	$('#watch_view').animate({
+		width: zero ? 0 : width
+	}, cb);
+
+	return width;
+};
+
 //add expression to history or move it to the end + reset cursor/cursor state
 var newExpression = function(expr) {
 	expressionHistory = _.filter(expressionHistory, function(e) {
@@ -178,6 +191,21 @@ var watchUpdater = function(watch) {
 	};
 };
 
+var toggleWatch = function() {
+	if (!hiddenWatch) {
+		$('#watch_view').hide();
+
+		setWidth(true, function() {
+			hiddenWatch = true;
+		});
+	} else {
+		setWidth(false, function() {
+			$('#watch_view').show();
+			hiddenWatch = false;
+		});
+	}
+};
+
 var internalCommand = function(cmd) {
 	var $package_scope = $('#input_info span');
 	//newExpression(cmd); //TODO add internal commands to history?
@@ -271,6 +299,9 @@ var consoleHandler = function(evt) {
 		}
 	} else if (evt.ctrlKey && evt.keyCode === 32) {
 		eval_str = eval_str || "this";
+		if (eval_str.match(/.*\./)) {
+			eval_str = eval_str.substr(0, eval_str.length - 1);
+		}
 		ddp.call("serverEval/eval", ['_.keys(' + eval_str + ')', {
 			'package': package_scope
 		}]);
@@ -321,34 +352,6 @@ var setupAutocomplete = function(supported_packages) {
 			}, 400);
 		}
 	});
-};
-
-var setWidth = function(zero, cb) {
-	var width = $(window).width() * WATCH_WIDTH / 100;
-	$('#console_view').animate({
-		right: zero ? 0 : width
-	});
-
-	$('#watch_view').animate({
-		width: zero ? 0 : width
-	}, cb);
-
-	return width;
-};
-
-var toggleWatch = function() {
-	if (!hiddenWatch) {
-		$('#watch_view').hide();
-
-		setWidth(true, function() {
-			hiddenWatch = true;
-		});
-	} else {
-		setWidth(false, function() {
-			$('#watch_view').show();
-			hiddenWatch = false;
-		});
-	}
 };
 
 $(document).ready(function() {
