@@ -1,6 +1,6 @@
 var VERSION = "0.4";
 
-var WATCH_STANDARD_WIDTH = 30; //percent
+var WATCH_WIDTH = 30; //percent
 
 var expressionHistory = [];
 var watches = {};
@@ -218,7 +218,17 @@ var internalCommand = function(cmd) {
 		}
 		return true;
 	} else if (cmd.match(/se:watch-view/)) {
-		toggleWatch();
+		var percent = cmd.substr(13);
+		if (percent === "60" && WATCH_WIDTH === 30) {
+			WATCH_WIDTH = 60;
+			setWidth();
+		} else if (percent === "30" && WATCH_WIDTH === 60) {
+			WATCH_WIDTH = 30;
+			setWidth();
+		} else if (percent === "60" && WATCH_WIDTH === 60 ||
+			percent === "30" && WATCH_WIDTH === 30) {
+			toggleWatch();
+		}
 		return true;
 	}
 	return false;
@@ -271,7 +281,8 @@ var setupAutocomplete = function(supported_packages) {
 		"se:port",
 		"se:reset",
 		"se:watch=",
-		"se:watch-view",
+		"se:watch-view30",
+		"se:watch-view60",
 		"se:use="
 	];
 
@@ -298,13 +309,13 @@ var setupAutocomplete = function(supported_packages) {
 			//neccessary because selection with enter triggers run_eval keyup
 			setTimeout(function() {
 				$("#run_eval").bind('keyup', consoleHandler);
-			}, 500);
+			}, 400);
 		}
 	});
 };
 
 var setWidth = function(zero, cb) {
-	var width = $(window).width() * WATCH_STANDARD_WIDTH / 100;
+	var width = $(window).width() * WATCH_WIDTH / 100;
 	$('#console_view').animate({
 		right: zero ? 0 : width
 	});
