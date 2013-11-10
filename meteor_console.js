@@ -337,10 +337,16 @@ var consoleHandler = function(evt) {
 		}
 	} else if (evt.ctrlKey && evt.keyCode === 32) {
 		show_autocomplete = true;
-		eval_str = eval_str || "this";
-		var dotIdx = eval_str.lastIndexOf(".");
+		eval_str = eval_str || '';
+		var dotIdx = eval_str.lastIndexOf('.');
 		var search;
-		if (dotIdx >= 0) {
+		if (!eval_str) {
+			eval_str = 'this';
+		} else {
+			if (dotIdx === -1) {
+				eval_str = 'this.' + eval_str;
+				dotIdx = 4;
+			}
 			search = eval_str.substr(dotIdx);
 			eval_str = eval_str.substring(0, dotIdx);
 		}
@@ -458,7 +464,19 @@ $(document).ready(function() {
 		//console.time("render-result-time");
 		if (evt.result_doc.autocomplete && show_autocomplete) {
 			//prevent to show autocompletes on reload
-			renderAutocomplete(evt.result_doc);
+			if (evt.result_doc.result.length === 1) {
+				var input_value = $("#run_eval").val();
+				var dotIdx = input_value.lastIndexOf('.');
+				var first_completion = evt.result_doc.result[0];
+				if (dotIdx >= 0) {
+					input_value = input_value.substring(0, dotIdx + 1) + first_completion;
+				} else {
+					input_value = first_completion;
+				}
+				$("#run_eval").val(input_value);
+			} else {
+				renderAutocomplete(evt.result_doc);
+			}
 		} else if (!evt.result_doc.autocomplete) {
 			renderResult(evt.result_doc);
 		}
