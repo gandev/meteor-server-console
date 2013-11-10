@@ -66,7 +66,7 @@ var newExpression = function(expr) {
 	exprCursorState = "bottom";
 };
 
-var newWatchEntry = function(watch) {
+var renderWatch = function(watch) {
 	if (hiddenWatch) {
 		toggleWatch();
 	}
@@ -118,7 +118,7 @@ var newWatchEntry = function(watch) {
 
 //inserts a new output entry into the dom
 //expr + scope + object tree (jqtree) / plain div with non object result
-var newOutputEntry = function(doc) {
+var renderResult = function(doc) {
 	var $content = $('#result_output_tmpl').clone();
 	$content.removeAttr('id'); //template id
 
@@ -152,7 +152,7 @@ var newOutputEntry = function(doc) {
 };
 
 //inserts a new internal message into the dom
-var newInternalMessage = function(state) {
+var renderInternalMessage = function(state) {
 	var $content = $('#internal_output_tmpl').clone();
 	$content.removeAttr('id'); //template id
 	var lbl = "default";
@@ -180,7 +180,7 @@ var newInternalMessage = function(state) {
 	positioning(true);
 };
 
-var newAutocompleteEntry = function(doc) {
+var renderAutocomplete = function(doc) {
 	var $content = $('#autocomplete_output_tmpl').clone();
 	$content.removeAttr('id'); //template id
 
@@ -258,14 +258,14 @@ var internalCommand = function(cmd) {
 		return true;
 	} else if (cmd.match(/se:set-port=\d*/)) /* e.g. se:port=4000 */ {
 		PORT = cmd.split("=")[1] || PORT;
-		newInternalMessage({
+		renderInternalMessage({
 			txt: 'changed port to [PORT: ' + PORT + ']',
 			type: "MSG"
 		});
 		ddp.close();
 		return true;
 	} else if (cmd.match(/se:port\d*/)) {
-		newInternalMessage({
+		renderInternalMessage({
 			txt: '[PORT: ' + PORT + ']',
 			type: 'MSG'
 		});
@@ -422,7 +422,7 @@ $(document).ready(function() {
 
 	//server eval events
 	$('body').on('server-eval-server-state', function(evt) {
-		newInternalMessage({
+		renderInternalMessage({
 			txt: evt.state_txt,
 			type: evt.state_type
 		});
@@ -440,7 +440,7 @@ $(document).ready(function() {
 		watch.update = watchUpdater(watch);
 		watches[watch._id] = watch;
 
-		newWatchEntry(watch);
+		renderWatch(watch);
 	});
 
 	$('body').on('server-eval-watch-removed', function(evt) {
@@ -458,9 +458,9 @@ $(document).ready(function() {
 		//console.time("render-result-time");
 		if (evt.result_doc.autocomplete && show_autocomplete) {
 			//prevent to show autocompletes on reload
-			newAutocompleteEntry(evt.result_doc);
+			renderAutocomplete(evt.result_doc);
 		} else if (!evt.result_doc.autocomplete) {
-			newOutputEntry(evt.result_doc);
+			renderResult(evt.result_doc);
 		}
 		//console.timeEnd("render-result-time");
 	});
