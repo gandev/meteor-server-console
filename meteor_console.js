@@ -180,14 +180,14 @@ var newInternalMessage = function(state) {
 	positioning(true);
 };
 
-var newAutocompleteEntry = function(completions) {
+var newAutocompleteEntry = function(doc) {
 	var $content = $('#autocomplete_output_tmpl').clone();
 	$content.removeAttr('id'); //template id
 
 	var $table = $content.find('.autocomplete table tbody');
 	var column_count = 0;
 	var $table_row;
-	_.each(completions || [], function(value) {
+	_.each(doc.result || [], function(value) {
 		if (column_count === 0) {
 			$table_row = $('<tr></tr>');
 		}
@@ -204,6 +204,10 @@ var newAutocompleteEntry = function(completions) {
 	if ($table_row) {
 		$table.append($table_row);
 	}
+
+	//expression and scope
+	$content.find('.eval_expr span').html(doc.expr);
+	$content.find('.scope').html(doc.scope);
 
 	$("#output").append($content);
 
@@ -454,7 +458,7 @@ $(document).ready(function() {
 		//console.time("render-result-time");
 		if (evt.result_doc.autocomplete && show_autocomplete) {
 			//prevent to show autocompletes on reload
-			newAutocompleteEntry(evt.result_doc.result);
+			newAutocompleteEntry(evt.result_doc);
 		} else if (!evt.result_doc.autocomplete) {
 			newOutputEntry(evt.result_doc);
 		}
