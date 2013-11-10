@@ -422,7 +422,9 @@ $(document).ready(function() {
 	$(window).resize(function() {
 		clearTimeout(resizeTimeout);
 		resizeTimeout = setTimeout(function() {
-			setWidth();
+			if (!hiddenWatch) {
+				setWidth();
+			}
 		}, 100);
 	});
 
