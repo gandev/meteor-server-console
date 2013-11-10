@@ -3,11 +3,12 @@
 - solution for performance issues with very large objects
   > nprogress loading progress
 - EJSON support
+- show types on autocomplete
 
 ## v0.4 - watch it
 
 - watch expressions, new watch view + commands
-- STRG + SPACE triggers evaluation of _.keys
+- basic autocomplete like feature with STRG + SPACE
 
 ## v0.3 - more infos
 
