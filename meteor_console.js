@@ -304,7 +304,7 @@ var internalCommand = function(cmd) {
 	return false;
 };
 
-//console handler, catches: up, down and enter key
+//console handler, handles: up, down, enter and ctrl + space
 var consoleHandler = function(evt) {
 	var eval_str = $("#run_eval").val();
 	if (evt.keyCode == 13) /* enter */ {
@@ -458,31 +458,64 @@ $(document).ready(function() {
 		}
 	});
 
+	var setInputValue = function(value) {
+		var input_value = $("#run_eval").val();
+		var dotIdx = input_value.lastIndexOf('.');
+		if (dotIdx >= 0) {
+			input_value = input_value.substring(0, dotIdx + 1) + value;
+		} else {
+			input_value = value;
+		}
+		$("#run_eval").val(input_value);
+	};
+
 	$('body').on('server-eval-new-result', function(evt) {
 		var _call = evt.result_doc && evt.result_doc.expr && newExpression(evt.result_doc.expr);
-		//TODO get rid of some old data automatically!?
-		//because of serious performance issue with really big results
-		//
-		//console.time("render-result-time");
 		if (evt.result_doc.autocomplete && show_autocomplete) {
 			//prevent to show autocompletes on reload
 			if (evt.result_doc.result.length === 1) {
-				var input_value = $("#run_eval").val();
-				var dotIdx = input_value.lastIndexOf('.');
 				var first_completion = evt.result_doc.result[0];
-				if (dotIdx >= 0) {
-					input_value = input_value.substring(0, dotIdx + 1) + first_completion;
-				} else {
-					input_value = first_completion;
+				setInputValue(first_completion);
+			} else if (evt.result_doc.result.length > 1) {
+				var completions = evt.result_doc.result;
+				var common = "";
+
+				var current_char = function(idx) {
+					var isInAll = true;
+					var _char = completions[0].charAt(idx);
+					for (var i = 0; i < completions.length; i++) {
+						var charAtIdx = completions[i].charAt(idx);
+						if (charAtIdx !== _char) {
+							isInAll = false;
+						}
+					}
+					if (isInAll) {
+						common += _char;
+						return true;
+					}
+					return false;
+				};
+
+				var min_length = -1;
+				for (var j = 0; j < completions.length; j++) {
+					var charLen = completions[j].length;
+					if (min_length < 0 || min_length > charLen) {
+						min_length = charLen;
+					}
 				}
-				$("#run_eval").val(input_value);
-			} else {
+
+				for (var n = 0; n < min_length; n++) {
+					if (!current_char(n)) break;
+				}
+
+				setInputValue(common);
 				renderAutocomplete(evt.result_doc);
 			}
 		} else if (!evt.result_doc.autocomplete) {
+			//console.time("render-result-time");
 			renderResult(evt.result_doc);
+			//console.timeEnd("render-result-time");
 		}
-		//console.timeEnd("render-result-time");
 	});
 
 	//start communication
