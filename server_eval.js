@@ -113,7 +113,7 @@ var _setupDataTransfer = function() {
 		if (ddp.sock.readyState === 3 /* CLOSED */ ) {
 			clearInterval(nIntervId);
 			_setServerState(SERVER_STATES.DOWN);
-			init();
+			initCommunication();
 		}
 	}, 1000);
 };
@@ -126,7 +126,7 @@ var initCommunication = function() {
 	}, /* no connection, try again in 2s */ function() {
 		setTimeout(function() {
 			_setServerState(SERVER_STATES.DOWN);
-			init();
+			initCommunication();
 		}, 1000);
 	});
 };

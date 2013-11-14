@@ -522,6 +522,5 @@ $(document).ready(function() {
 		}
 	});
 
-	//start communication
-	initCommunication();
+	initCommunication(); //with meteor server
 });
