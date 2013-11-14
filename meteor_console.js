@@ -44,16 +44,20 @@ var positioning = function(scroll) {
 };
 
 var setWidth = function(zero, cb) {
-	var width = $(window).width() * WATCH_WIDTH / 100;
+	var watch_width = zero ? 0 : $(window).width() * WATCH_WIDTH / 100;
+	var console_width = $(window).width() - watch_width;
 	$('#console_view').animate({
-		right: zero ? 0 : width
+		right: watch_width,
+		width: console_width
+	}, function() {
+		if (zero) {
+			$(this).css('width', '100%');
+		}
 	});
 
 	$('#watch_view').animate({
-		width: zero ? 0 : width
+		width: watch_width
 	}, cb);
-
-	return width;
 };
 
 //add expression to history or move it to the end + reset cursor/cursor state
@@ -80,7 +84,7 @@ var renderWatch = function(watch) {
 	} else {
 		$content.find('.watch_refresh').unbind();
 		$content.find('.watch_remove').unbind();
-		//TODO produced a flicker when using .tree() again
+		//produced a flicker when using .tree() again
 		$content.find('.eval_tree').replaceWith($('<div class="eval_tree"></div>'));
 	}
 
@@ -519,5 +523,5 @@ $(document).ready(function() {
 	});
 
 	//start communication
-	init();
+	initCommunication();
 });

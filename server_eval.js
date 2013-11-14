@@ -119,7 +119,7 @@ var _setupDataTransfer = function() {
 };
 
 //connect to the server or wait until a connection attempt is successful
-var init = function() {
+var initCommunication = function() {
 	ddp = new MeteorDdp("ws://localhost:" + PORT + "/websocket");
 	ddp.connect().then(function() {
 		_setupDataTransfer();

@@ -1,3 +1,9 @@
+/* TODO clean up this mess ... */
+
+#console_view {
+  width: 100%;
+}
+
 #output {
   padding-left: 10px;
 }
