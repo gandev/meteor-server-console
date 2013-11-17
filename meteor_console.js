@@ -12,6 +12,8 @@ var exprCursorState = "bottom";
 var package_scope;
 
 var hiddenWatch = true;
+var watch_view_toggling;
+
 var show_autocomplete = false;
 
 //optionally scrolls the page to the bottom of output if results are higher then window height
@@ -70,6 +72,16 @@ var newExpression = function(expr) {
 	exprCursorState = "bottom";
 };
 
+var createTemplateInstance = function(name, id) {
+	var $tmpl_instance = $('#' + name).clone();
+	if (id) {
+		$tmpl_instance.attr('id', id); //template id
+	} else {
+		$tmpl_instance.removeAttr('id');
+	}
+	return $tmpl_instance;
+};
+
 var renderWatch = function(watch) {
 	if (hiddenWatch) {
 		toggleWatch();
@@ -77,8 +89,7 @@ var renderWatch = function(watch) {
 
 	var $content = $("#" + watch._id);
 	if ($content.length === 0) {
-		$content = $('#watch_tmpl').clone();
-		$content.attr('id', watch._id); //template id
+		$content = createTemplateInstance('watch_tmpl', watch._id);
 
 		$("#watch_view").append($content);
 	} else {
@@ -107,13 +118,12 @@ var renderWatch = function(watch) {
 	$content.find('.eval_expr .expr').html(watch.expr);
 	$content.find('.scope').html(watch.scope);
 
-	//
 	$content.find('.watch_refresh').bind("click", function() {
 		watch.update();
 	});
 
 	$content.find('.watch_remove').bind("click", function() {
-		ddp.call('serverEval/removeWatch', [watch._id]);
+		ServerEval.removeWatch(watch._id);
 	});
 
 	//is called to always see the input even if results are higher then window height
@@ -123,8 +133,7 @@ var renderWatch = function(watch) {
 //inserts a new output entry into the dom
 //expr + scope + object tree (jqtree) / plain div with non object result
 var renderResult = function(doc) {
-	var $content = $('#result_output_tmpl').clone();
-	$content.removeAttr('id'); //template id
+	var $content = createTemplateInstance('result_output_tmpl');
 
 	if (_.isObject(doc.result)) {
 		$content.find('.content').addClass('eval_tree');
@@ -157,8 +166,8 @@ var renderResult = function(doc) {
 
 //inserts a new internal message into the dom
 var renderInternalMessage = function(state) {
-	var $content = $('#internal_output_tmpl').clone();
-	$content.removeAttr('id'); //template id
+	var $content = createTemplateInstance('internal_output_tmpl');
+
 	var lbl = "default";
 	switch (state.type) {
 		case "MSG":
@@ -185,8 +194,7 @@ var renderInternalMessage = function(state) {
 };
 
 var renderAutocomplete = function(doc) {
-	var $content = $('#autocomplete_output_tmpl').clone();
-	$content.removeAttr('id'); //template id
+	var $content = createTemplateInstance('autocomplete_output_tmpl');
 
 	var $table = $content.find('.autocomplete table tbody');
 	var column_count = 0;
@@ -219,38 +227,45 @@ var renderAutocomplete = function(doc) {
 };
 
 var clearOutput = function() {
-	ddp.call("serverEval/clear").then(function() {
-		$("#output .result").remove();
-	});
+	ServerEval.clear();
+	$("#output .result").remove();
 };
 
 var watchUpdater = function(watch) {
 	return function() {
-		ddp.call("serverEval/eval", [watch.expr, {
+		ServerEval.eval(watch.expr, {
 			'package': watch.watch_scope,
 			watch: true
-		}]);
+		});
 	};
 };
 
-var toggleWatch = function() {
+var toggleWatch = function(reopen) {
+	if (watch_view_toggling) return;
+	watch_view_toggling = true;
+
 	if (!hiddenWatch) {
 		$('#watch_view').hide();
 
 		setWidth(true, function() {
 			hiddenWatch = true;
+			watch_view_toggling = false;
+
+			if (reopen && $('#watch_view .watch').length > 0) {
+				toggleWatch();
+			}
 		});
 	} else {
 		setWidth(false, function() {
 			$('#watch_view').show();
 			hiddenWatch = false;
+			watch_view_toggling = false;
 		});
 	}
 };
 
 var internalCommand = function(cmd) {
 	var $package_scope = $('#input_info span');
-	//newExpression(cmd); //TODO add internal commands to history?
 	if (cmd === ".clear") {
 		clearOutput();
 		positioning(true);
@@ -261,16 +276,16 @@ var internalCommand = function(cmd) {
 		$package_scope.show();
 		return true;
 	} else if (cmd.match(/se:set-port=\d*/)) /* e.g. se:port=4000 */ {
-		PORT = cmd.split("=")[1] || PORT;
+		var port = cmd.split("=")[1];
 		renderInternalMessage({
-			txt: 'changed port to [PORT: ' + PORT + ']',
+			txt: 'changed port to [PORT: ' + port + ']',
 			type: "MSG"
 		});
-		ddp.close();
+		ServerEval.changeServer(port);
 		return true;
 	} else if (cmd.match(/se:port\d*/)) {
 		renderInternalMessage({
-			txt: '[PORT: ' + PORT + ']',
+			txt: '[PORT: ' + ServerEval.currentPort() + ']',
 			type: 'MSG'
 		});
 		return true;
@@ -285,6 +300,7 @@ var internalCommand = function(cmd) {
 				expr: watch_expr,
 				watch_scope: package_scope
 			})();
+			newExpression(cmd);
 		}
 		return true;
 	} else if (cmd.match(/se:watch-view/)) {
@@ -313,9 +329,9 @@ var consoleHandler = function(evt) {
 	var eval_str = $("#run_eval").val();
 	if (evt.keyCode == 13) /* enter */ {
 		if (!internalCommand(eval_str)) {
-			ddp.call("serverEval/eval", [eval_str, {
+			ServerEval.eval(eval_str, {
 				'package': package_scope
-			}]);
+			});
 		}
 		$("#run_eval").val("");
 	} else if (evt.keyCode == 38) /*up*/ {
@@ -355,11 +371,11 @@ var consoleHandler = function(evt) {
 			eval_str = eval_str.substring(0, dotIdx);
 		}
 
-		ddp.call("serverEval/eval", [eval_str, {
+		ServerEval.eval(eval_str, {
 			'package': package_scope,
 			autocomplete: true,
 			search: search && search.length > 1 ? search.substr(1) : undefined
-		}]);
+		});
 	}
 };
 
@@ -432,22 +448,27 @@ $(document).ready(function() {
 		}, 100);
 	});
 
-	//server eval events
-	$('body').on('server-eval-server-state', function(evt) {
+	//listen to server eval events
+	ServerEval.listenForServerState(function(evt) {
 		renderInternalMessage({
 			txt: evt.state_txt,
 			type: evt.state_type
 		});
+
+		if (evt.state_type === "SUCCESS") {
+			//remove old watches and close watch view with reopen true (if there are watches)
+			$('#watch_view .watch').remove();
+			if (!hiddenWatch) {
+				toggleWatch(true);
+			}
+		}
 	});
 
-	$('body').on('server-eval-metadata', function(evt) {
-		$('#watch_view .watch').remove(); //use metadata as a starup hook
-		//TODO close watch, but at the moment it would also close on server restart
-
+	ServerEval.listenForMetadata(function(evt) {
 		setupAutocomplete(evt.supported_packages);
 	});
 
-	$('body').on('server-eval-watch', function(evt) {
+	ServerEval.listenForWatchUpdates(function(evt) {
 		var watch = evt.watch_result;
 		watch.update = watchUpdater(watch);
 		watches[watch._id] = watch;
@@ -455,14 +476,14 @@ $(document).ready(function() {
 		renderWatch(watch);
 	});
 
-	$('body').on('server-eval-watch-removed', function(evt) {
+	ServerEval.listenForWatchRemoved(function(evt) {
 		$('#' + evt.watch_id).remove();
 		if ($('#watch_view .watch').length === 0) {
 			toggleWatch();
 		}
 	});
 
-	var setInputValue = function(value) {
+	var completeInputValue = function(value) {
 		var input_value = $("#run_eval").val();
 		var dotIdx = input_value.lastIndexOf('.');
 		if (dotIdx >= 0) {
@@ -473,18 +494,18 @@ $(document).ready(function() {
 		$("#run_eval").val(input_value);
 	};
 
-	$('body').on('server-eval-new-result', function(evt) {
+	ServerEval.listenForNewResults(function(evt) {
 		var _call = evt.result_doc && evt.result_doc.expr && newExpression(evt.result_doc.expr);
 		if (evt.result_doc.autocomplete && show_autocomplete) {
 			//prevent to show autocompletes on reload
 			if (evt.result_doc.result.length === 1) {
 				var first_completion = evt.result_doc.result[0];
-				setInputValue(first_completion);
+				completeInputValue(first_completion);
 			} else if (evt.result_doc.result.length > 1) {
 				var completions = evt.result_doc.result;
-				var common = "";
+				var mutual_part = "";
 
-				var current_char = function(idx) {
+				var is_mutual_char = function(idx) {
 					var isInAll = true;
 					var _char = completions[0].charAt(idx);
 					for (var i = 0; i < completions.length; i++) {
@@ -494,12 +515,13 @@ $(document).ready(function() {
 						}
 					}
 					if (isInAll) {
-						common += _char;
+						mutual_part += _char;
 						return true;
 					}
 					return false;
 				};
 
+				//determine mutual part of all properties and add to input
 				var min_length = -1;
 				for (var j = 0; j < completions.length; j++) {
 					var charLen = completions[j].length;
@@ -509,10 +531,11 @@ $(document).ready(function() {
 				}
 
 				for (var n = 0; n < min_length; n++) {
-					if (!current_char(n)) break;
+					if (!is_mutual_char(n)) break;
 				}
 
-				setInputValue(common);
+				completeInputValue(mutual_part);
+
 				renderAutocomplete(evt.result_doc);
 			}
 		} else if (!evt.result_doc.autocomplete) {
@@ -522,5 +545,5 @@ $(document).ready(function() {
 		}
 	});
 
-	initCommunication(); //with meteor server
+	ServerEval.init();
 });
