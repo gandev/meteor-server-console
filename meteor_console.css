@@ -16,7 +16,7 @@
   font-size: 0.9em;
 }
 
-#console_view, #watch_view, .scope, .watch_controls {
+#console_view, #watch_view, .scope {
   position: absolute;
 }
 
@@ -67,8 +67,8 @@
 }
 
 .watch .scope {
-  right: 50px;
-  margin-top: 2px;
+  right: 5px;
+  margin-top: 4px;
 }
 
 .result .scope {
