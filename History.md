@@ -2,8 +2,9 @@
 
 - solution for performance issues with very large objects
   > nprogress loading progress
-- EJSON support
+- some kind of EJSON support
 - show types on autocomplete
+
 
 ## v0.4 - watch it
 

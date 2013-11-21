@@ -140,7 +140,7 @@ var renderResult = function(doc) {
 		$content.find('.eval_tree').tree({
 			data: objectToTreeData(doc.result, true),
 			onCreateLi: function(node, $li) {
-				// Append a link to the jqtree-element div.
+				//use text as html because the treedate include html
 				var $title = $li.find('.jqtree-title');
 				$title.html($title.text());
 			}

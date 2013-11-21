@@ -75,6 +75,13 @@ var _errorToTreeData = function(obj) {
 	return tree_data;
 };
 
+var _createSubtree = function(label, children) {
+	return {
+		'label': label,
+		'children': children
+	};
+};
+
 //converts all kind of result objects in jqtree format
 //recursive function adding subtrees, subtree subtrees, ...
 var objectToTreeData = function(obj, top_level) {
@@ -98,29 +105,26 @@ var objectToTreeData = function(obj, top_level) {
 		var sub_tree;
 		if (_.isObject(value)) {
 			//sub_tree with children (objects)
-			sub_tree = {
-				'label': key + ": " + _typeHtml(value),
-				'children': objectToTreeData(value, false)
-			};
+			sub_tree = _createSubtree(key + ": " + _typeHtml(value), objectToTreeData(value, false));
 		} else {
 			//sub_tree without children (string, number, boolean)
-			sub_tree = {
-				'label': key + ": " + wrapPrimitives(value)
-			};
+			sub_tree = _createSubtree(key + ": " + wrapPrimitives(value));
 		}
 
 		//top level label is just the _typeHtml and properties are direct children
 		if (top_level) {
 			if (tree_data.length === 0) {
-				tree_data.push({
-					'label': _typeHtml(obj),
-					'children': []
-				});
+				tree_data.push(_createSubtree(_typeHtml(obj), []));
 			}
 			tree_data[0].children.push(sub_tree);
 		} else {
 			tree_data.push(sub_tree);
 		}
 	}
+
+	if (tree_data.length === 0) {
+		tree_data.push(_createSubtree(_typeHtml(obj)));
+	}
+
 	return tree_data;
 };

@@ -123,6 +123,8 @@
 				ServerEval._metadataChanged({
 					supported_packages: doc.supported_packages
 				});
+			} else if (msg === "changed") {
+				console.log(doc);
 			}
 		});
 		ddp.subscribe("server-eval-metadata");
