@@ -219,6 +219,11 @@ var renderAutocomplete = function(doc) {
 	$content.find('.eval_expr span').html(doc.expr);
 	$content.find('.scope').html(doc.scope);
 
+	//show only last 2 autocompletes
+	if ($("#output .autocomplete").length === 2) {
+		$("#output .autocomplete").first().parent().remove();
+	}
+
 	$("#output").append($content);
 
 	positioning(true);
