@@ -94,16 +94,21 @@ var createTree = function($content, result) {
 	});
 };
 
-var renderReturnValue = function($content, result, cb) {
-	if (_.isObject(result)) {
-		var tree = createTree($content, result);
+var createReturnValue = function($content, value, cb) {
+	if (_.isObject(value.result)) {
+		var tree = createTree($content, value.result);
 		if (cb) {
 			tree.bind('tree.close', cb);
 		}
 	} else {
 		$content.find('.content').addClass('eval_primitive');
-		$content.find('.eval_primitive').html(wrapPrimitives(result));
+		$content.find('.eval_primitive').html(wrapPrimitives(value.result));
 	}
+
+	//expression and scope
+	$content.find('.eval_expr span').html(value.expr);
+	$content.find('.scope').html(value.scope);
+	$content.find('.scope').append(' [' + value.eval_exec_time + 'ms]');
 };
 
 var renderWatch = function(watch) {
@@ -123,11 +128,7 @@ var renderWatch = function(watch) {
 		$content.find('.eval_tree').replaceWith($('<div class="eval_tree"></div>'));
 	}
 
-	renderReturnValue($content, watch.result);
-
-	//expression and scope
-	$content.find('.eval_expr .expr').html(watch.expr);
-	$content.find('.scope').html(watch.scope);
+	createReturnValue($content, watch);
 
 	$content.find('.watch_refresh').bind("click", function() {
 		watch.update();
@@ -146,16 +147,12 @@ var renderWatch = function(watch) {
 var renderResult = function(doc) {
 	var $content = createTemplateInstance('result_output_tmpl');
 
-	renderReturnValue($content, doc.result, function(e) {
+	createReturnValue($content, doc, function(e) {
 		if (!e.node.parent.parent) {
 			$("#run_eval").focus();
 			positioning(true);
 		}
 	});
-
-	//expression and scope
-	$content.find('.eval_expr span').html(doc.expr);
-	$content.find('.scope').html(doc.scope);
 
 	$("#output").append($content);
 

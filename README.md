@@ -1,20 +1,21 @@
 meteor-server-console
 =====================
 
-is a "Chrome DevTools" extension which connects to a [meteor](http://www.meteor.com) server (DDP)
-provides a virtual Server Console to evaluate expressions and
-pretty prints the results in browser
+is a tool which connects to a [meteor](http://www.meteor.com) server running the [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval) smartpackage and provides a way to evaluate javascript in the server environment.
+
+I'm publishing meteor-server-console as a "Chrome DevTools" extension but its also possible to use it in other browsers
+(just clone the repository and open meteor_console.html).
 
 ## Setup
 
-*    install extension in your chrome (see chrome://extensions)
+*    OPTIONAL: install extension in your chrome (open chrome://extensions and drag and drop the .crx file)
 *    add smartpackage [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval) to your app
-*    start your app and open "Meteor Console" tab in "Chrome DevTools"
+*    start your app and open meteor-server-console (appears in "Chrome DevTools" as the new Tab "Meteor Console")
 
 ## Use
 
 *    Connection
-     - automatically connects to localhost:3000, connection to other ports with input command
+     - automatically connects to localhost:3000 by default, to change the port see Input commands 
        ("ws://localhost:3000/websocket")
      - polls the server and connects automatically when server starts/restarts
 
@@ -27,7 +28,7 @@ pretty prints the results in browser
      - type in .clear to empty the list of last evaluations
      - select last evaluated expressions with the UP and DOWN keys
      - type in an object name or part of it and press CTRL + SPACE to trigger autocomplete
-     - typing se: opens a popup with commands:
+     - typing se: opens a popup with internal commands:
          - se:use=package_name / sets the package in which evaluations should be scoped if supported
          - se:reset / resets scope to global
          - se:set-port=4000 / sets the port on localhost to switch to another app
@@ -36,8 +37,8 @@ pretty prints the results in browser
          - se:watch-view / toggle watch view open/closed
          - se:watch-view60 / change watch view width in percent (arbitrary)
 
-*    Output
-     - expression in first line, result below + scope with milliseconds for evaluation on the right side
+*    Output (not stored in app db)
+     - expression in first line (leading #), result below and scope with evaluation time in milliseconds on the right side
      - internal messages (Error=red, Info=orange, SUCCESS=green)
      - Results:
          - Strings, Numbers, Booleans directly
@@ -47,13 +48,11 @@ pretty prints the results in browser
              - Circular References are marked and shown with path
              - Errors with stacktrace (special format with the attempt of highlighting more relevant lines)
      - Autocomplete
-         - show keys of an object in a table
-         - optional filtered, keys starting with the part after the last dot
+         - show keys of an object in a table and/or set input value
 
-*   Watch
+*   Watch (stored in app db)
      - watch view, refresh and remove watches
      - watches are persistent on the server and automatically refreshed if server restarts
-     - if last watch is removed watch view closes
 
 ## In action...
 

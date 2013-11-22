@@ -1,15 +1,16 @@
 ## before v1.0
 
 - solution for performance issues with very large objects
-  > nprogress loading progress
+  + nprogress loading progress
 - some kind of EJSON support
 - show types on autocomplete
-
+- syntax highlighting in input + allow multiple lines
+- watches with update interval
 
 ## v0.4 - watch it
 
-- watch expressions, new watch view + commands
-- basic autocomplete like feature with STRG + SPACE
+- new watch view to watch expressions
+- basic autocomplete like feature for object properties
 
 ## v0.3 - more infos
 
