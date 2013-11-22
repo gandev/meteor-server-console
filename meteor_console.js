@@ -82,6 +82,30 @@ var createTemplateInstance = function(name, id) {
 	return $tmpl_instance;
 };
 
+var createTree = function($content, result) {
+	$content.find('.content').addClass('eval_tree');
+	return $content.find('.eval_tree').tree({
+		data: objectToTreeData(result, true),
+		onCreateLi: function(node, $li) {
+			//use text as html because the treedata includes html
+			var $title = $li.find('.jqtree-title');
+			$title.html($title.text());
+		}
+	});
+};
+
+var renderReturnValue = function($content, result, cb) {
+	if (_.isObject(result)) {
+		var tree = createTree($content, result);
+		if (cb) {
+			tree.bind('tree.close', cb);
+		}
+	} else {
+		$content.find('.content').addClass('eval_primitive');
+		$content.find('.eval_primitive').html(wrapPrimitives(result));
+	}
+};
+
 var renderWatch = function(watch) {
 	if (hiddenWatch) {
 		toggleWatch();
@@ -99,20 +123,7 @@ var renderWatch = function(watch) {
 		$content.find('.eval_tree').replaceWith($('<div class="eval_tree"></div>'));
 	}
 
-	if (_.isObject(watch.result)) {
-		$content.find('.content').addClass('eval_tree');
-		$content.find('.eval_tree').tree({
-			data: objectToTreeData(watch.result, true),
-			onCreateLi: function(node, $li) {
-				// Append a link to the jqtree-element div.
-				var $title = $li.find('.jqtree-title');
-				$title.html($title.text());
-			}
-		});
-	} else {
-		$content.find('.content').addClass('eval_primitive');
-		$content.find('.eval_primitive').html(wrapPrimitives(watch.result));
-	}
+	renderReturnValue($content, watch.result);
 
 	//expression and scope
 	$content.find('.eval_expr .expr').html(watch.expr);
@@ -135,25 +146,12 @@ var renderWatch = function(watch) {
 var renderResult = function(doc) {
 	var $content = createTemplateInstance('result_output_tmpl');
 
-	if (_.isObject(doc.result)) {
-		$content.find('.content').addClass('eval_tree');
-		$content.find('.eval_tree').tree({
-			data: objectToTreeData(doc.result, true),
-			onCreateLi: function(node, $li) {
-				//use text as html because the treedate include html
-				var $title = $li.find('.jqtree-title');
-				$title.html($title.text());
-			}
-		}).bind('tree.close', function(e) {
-			if (!e.node.parent.parent) {
-				$("#run_eval").focus();
-				positioning(true);
-			}
-		});
-	} else {
-		$content.find('.content').addClass('eval_primitive');
-		$content.find('.eval_primitive').html(wrapPrimitives(doc.result));
-	}
+	renderReturnValue($content, doc.result, function(e) {
+		if (!e.node.parent.parent) {
+			$("#run_eval").focus();
+			positioning(true);
+		}
+	});
 
 	//expression and scope
 	$content.find('.eval_expr span').html(doc.expr);
@@ -456,7 +454,8 @@ $(document).ready(function() {
 		});
 
 		if (evt.state_type === "SUCCESS") {
-			//remove old watches and close watch view with reopen true (if there are watches)
+			//remove old watches and close watch view with reopen true
+			//(if there are watches getting added while closing)
 			$('#watch_view .watch').remove();
 			if (!hiddenWatch) {
 				toggleWatch(true);
@@ -496,8 +495,9 @@ $(document).ready(function() {
 
 	ServerEval.listenForNewResults(function(evt) {
 		var _call = evt.result_doc && evt.result_doc.expr && newExpression(evt.result_doc.expr);
+
+		//prevent to show autocompletes on reload
 		if (evt.result_doc.autocomplete && show_autocomplete) {
-			//prevent to show autocompletes on reload
 			if (evt.result_doc.result.length === 1) {
 				var first_completion = evt.result_doc.result[0];
 				completeInputValue(first_completion);

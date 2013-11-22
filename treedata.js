@@ -122,7 +122,7 @@ var objectToTreeData = function(obj, top_level) {
 		}
 	}
 
-	if (tree_data.length === 0) {
+	if (top_level && tree_data.length === 0) {
 		tree_data.push(_createSubtree(_typeHtml(obj)));
 	}
 
