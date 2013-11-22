@@ -90,15 +90,6 @@
 	var setupDataTransfer = function() {
 		currentPort = PORT;
 		setServerState(SERVER_STATES.UP);
-		//watch ServerEval.results()
-		ddp.watch("server-eval-results", function(doc, msg) {
-			if (msg === "added") {
-				ServerEval._newResult({
-					result_doc: doc
-				});
-			}
-		});
-		ddp.subscribe("server-eval-results");
 
 		//3 second timeout than assume that server doesn't use server-eval
 		var metaDataTimeout = setTimeout(function() {
@@ -144,6 +135,16 @@
 			}
 		});
 		ddp.subscribe("server-eval-watch");
+
+		//watch ServerEval.results()
+		ddp.watch("server-eval-results", function(doc, msg) {
+			if (msg === "added") {
+				ServerEval._newResult({
+					result_doc: doc
+				});
+			}
+		});
+		ddp.subscribe("server-eval-results");
 
 		// poll server and try reinit when server down
 		var nIntervId = setInterval(function() {
