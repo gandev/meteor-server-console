@@ -7,6 +7,11 @@
 - syntax highlighting in input + allow multiple lines
 - watches with update interval
 
+maybe..
+- js-git integration to (at least) commit, push, pull project
+- basic console commands like cd, ls, touch, mkdir, ...
+- insert package scope eval per command
+
 ## v0.4 - watch it
 
 - new watch view to watch expressions
