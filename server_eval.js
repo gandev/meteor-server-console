@@ -1,6 +1,7 @@
 (function() {
 
 	var ddp;
+	var HOST = "localhost"; //"192.168.1.102";
 	var PORT = 3000; //default like meteor
 	var currentPort;
 	//local copy of server-eval metadata
@@ -161,7 +162,7 @@
 
 	//connect to the server or wait until a connection attempt is successful
 	var initCommunication = function() {
-		ddp = new MeteorDdp("ws://localhost:" + PORT + "/websocket");
+		ddp = new MeteorDdp("ws://" + HOST + ":" + PORT + "/websocket");
 		ddp.connect().then(function() {
 			setupDataTransfer();
 		}, /* no connection, try again in 2s */ function() {

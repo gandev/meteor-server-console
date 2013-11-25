@@ -385,19 +385,21 @@ var setupAutocomplete = function(supported_packages) {
 		return "se:use=" + pkg;
 	});
 
-	//autocomplete default commands
-	var availableTags = [
-		"se:set-port=",
-		"se:set-port=3000",
-		"se:port",
-		"se:reset",
-		"se:watch=",
-		"se:watch-view",
-		"se:watch-view60",
-		"se:use="
+	var internalCommands = [
+		":set-port=",
+		":set-port=3000",
+		":port",
+		":reset",
+		":watch=",
+		":watch-view",
+		":watch-view60",
+		":use="
 	];
+	internalCommands = internalCommands.concat(packageTags);
 
-	availableTags = availableTags.concat(packageTags);
+	var generalCommands = [
+		".clear"
+	];
 
 	$("#run_eval").autocomplete({
 		position: {
@@ -405,11 +407,18 @@ var setupAutocomplete = function(supported_packages) {
 			at: "left top",
 			collision: "flip"
 		},
-		minLength: 3,
+		//minLength: 3,
 		source: function(request, response) {
-			//only allow matches starting with the input (e.g. se:)
+			//only allow matches starting with the input value
 			var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
-			response($.grep(availableTags, function(item) {
+			var tags = [];
+			if (request.term.match(/^:/)) {
+				tags = internalCommands;
+			} else if (request.term.match(/^\./)) {
+				tags = generalCommands;
+			}
+
+			response($.grep(tags, function(item) {
 				return matcher.test(item);
 			}));
 		},
