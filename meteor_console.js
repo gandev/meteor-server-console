@@ -270,12 +270,12 @@ var internalCommand = function(cmd) {
 		clearOutput();
 		positioning(true);
 		return true;
-	} else if (cmd.match(/se:use=.*/)) /* e.g. se:use=custom-package */ {
+	} else if (cmd.match(/:use=.*/)) /* e.g. :use=custom-package */ {
 		package_scope = cmd.split("=")[1];
 		$package_scope.html(package_scope);
 		$package_scope.show();
 		return true;
-	} else if (cmd.match(/se:set-port=\d*/)) /* e.g. se:port=4000 */ {
+	} else if (cmd.match(/:set-port=\d*/)) /* e.g. :port=4000 */ {
 		var port = cmd.split("=")[1];
 		renderInternalMessage({
 			txt: 'changed port to [PORT: ' + port + ']',
@@ -283,17 +283,17 @@ var internalCommand = function(cmd) {
 		});
 		ServerEval.changeServer(port);
 		return true;
-	} else if (cmd.match(/se:port\d*/)) {
+	} else if (cmd.match(/:port\d*/)) {
 		renderInternalMessage({
 			txt: '[PORT: ' + ServerEval.currentPort() + ']',
 			type: 'MSG'
 		});
 		return true;
-	} else if (cmd.match(/se:reset/)) {
+	} else if (cmd.match(/:reset/)) {
 		$package_scope.hide();
 		package_scope = null;
 		return true;
-	} else if (cmd.match(/se:watch=/)) /* e.g. se:new-watch=Date.now() */ {
+	} else if (cmd.match(/:watch=/)) /* e.g. :new-watch=Date.now() */ {
 		var watch_expr = cmd.split("=")[1];
 		if (watch_expr) {
 			watchUpdater({
@@ -303,7 +303,7 @@ var internalCommand = function(cmd) {
 			newExpression(cmd);
 		}
 		return true;
-	} else if (cmd.match(/se:watch-view/)) {
+	} else if (cmd.match(/:watch-view/)) {
 		var width = +cmd.substr(13);
 		if (isNaN(width)) return true;
 
@@ -382,7 +382,7 @@ var consoleHandler = function(evt) {
 var setupAutocomplete = function(supported_packages) {
 	//use server-eval metadata to show supported packages
 	var packageTags = _.map(supported_packages || [], function(pkg) {
-		return "se:use=" + pkg;
+		return ":use=" + pkg;
 	});
 
 	var internalCommands = [
