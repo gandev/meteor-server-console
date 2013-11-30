@@ -16,6 +16,10 @@ var watch_view_toggling;
 
 var show_autocomplete = false;
 
+var focusInput = function() {
+	$('#run_eval').focus();
+};
+
 //optionally scrolls the page to the bottom of output if results are higher then window height
 var positioning = function(scroll) {
 	var output_height = $('#output').height();
@@ -149,7 +153,7 @@ var renderResult = function(doc) {
 
 	createReturnValue($content, doc, function(e) {
 		if (!e.node.parent.parent) {
-			$("#run_eval").focus();
+			focusInput();
 			positioning(true);
 		}
 	});
@@ -279,7 +283,7 @@ var internalCommand = function(cmd) {
 		var args = split_cmd.slice(1);
 		ServerEval.executeHelper(command, args);
 		return true;
-	} else if (cmd.match(/:use=.*/)) /* e.g. :use=custom-package */ {
+	} else if (cmd.match(/:scope=.*/)) /* e.g. :scope=custom-package */ {
 		package_scope = cmd.split("=")[1];
 		$package_scope.html(package_scope);
 		$package_scope.show();
@@ -298,7 +302,7 @@ var internalCommand = function(cmd) {
 			type: 'MSG'
 		});
 		return true;
-	} else if (cmd.match(/:reset/)) {
+	} else if (cmd.match(/:reset-scope/)) {
 		$package_scope.hide();
 		package_scope = null;
 		return true;
@@ -392,18 +396,17 @@ var setupAutocomplete = function(metadata) {
 	metadata = metadata || {};
 	//use server-eval metadata to show supported packages
 	var packageTags = _.map(metadata.supported_packages || [], function(pkg) {
-		return ":use=" + pkg;
+		return ":scope=" + pkg;
 	});
 
 	var internalCommands = [
 		":set-port=",
 		":set-port=3000",
 		":port",
-		":reset",
+		":reset-scope",
 		":watch=",
 		":watch-view",
-		":watch-view60",
-		":use="
+		":watch-view60"
 	];
 	internalCommands = internalCommands.concat(packageTags);
 
@@ -451,7 +454,11 @@ var setupAutocomplete = function(metadata) {
 };
 
 $(document).ready(function() {
-	$('#run_eval').focus();
+	focusInput();
+
+	$(document).bind('keydown', function() {
+		focusInput();
+	});
 
 	//wire and initialize ui
 	$("#run_eval").bind('keyup', consoleHandler);
