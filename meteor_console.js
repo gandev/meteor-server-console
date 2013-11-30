@@ -145,7 +145,7 @@ var renderWatch = function(watch) {
 //inserts a new output entry into the dom
 //expr + scope + object tree (jqtree) / plain div with non object result
 var renderResult = function(doc) {
-	var $content = createTemplateInstance('result_output_tmpl');
+	var $content = createTemplateInstance(doc.internal ? 'helper_output_tmpl' : 'result_output_tmpl');
 
 	createReturnValue($content, doc, function(e) {
 		if (!e.node.parent.parent) {
@@ -270,12 +270,14 @@ var internalCommand = function(cmd) {
 		clearOutput();
 		positioning(true);
 		return true;
-	} else if (cmd.match(/\.ls.*/)) {
-		var args = cmd.split(/\s+/g).slice(1);
-		ServerEval._helper('ls', args);
-		return true;
 	} else if (cmd === ".reload") {
 		window.location.reload();
+		return true;
+	} else if (cmd.match(/^\..*/)) {
+		var split_cmd = cmd.split(/\s+/g);
+		var command = split_cmd[0];
+		var args = split_cmd.slice(1);
+		ServerEval.executeHelper(command, args);
 		return true;
 	} else if (cmd.match(/:use=.*/)) /* e.g. :use=custom-package */ {
 		package_scope = cmd.split("=")[1];
@@ -386,9 +388,10 @@ var consoleHandler = function(evt) {
 	}
 };
 
-var setupAutocomplete = function(supported_packages) {
+var setupAutocomplete = function(metadata) {
+	metadata = metadata || {};
 	//use server-eval metadata to show supported packages
-	var packageTags = _.map(supported_packages || [], function(pkg) {
+	var packageTags = _.map(metadata.supported_packages || [], function(pkg) {
 		return ":use=" + pkg;
 	});
 
@@ -404,11 +407,15 @@ var setupAutocomplete = function(supported_packages) {
 	];
 	internalCommands = internalCommands.concat(packageTags);
 
+	var helperTags = _.map(metadata.helpers || [], function(helper) {
+		return "." + helper;
+	});
+
 	var generalCommands = [
 		".clear",
-		".reload",
-		".ls"
+		".reload"
 	];
+	generalCommands = generalCommands.concat(helperTags);
 
 	$("#run_eval").autocomplete({
 		position: {
@@ -444,6 +451,8 @@ var setupAutocomplete = function(supported_packages) {
 };
 
 $(document).ready(function() {
+	$('#run_eval').focus();
+
 	//wire and initialize ui
 	$("#run_eval").bind('keyup', consoleHandler);
 	setupAutocomplete();
@@ -484,7 +493,7 @@ $(document).ready(function() {
 	});
 
 	ServerEval.listenForMetadata(function(evt) {
-		setupAutocomplete(evt.supported_packages);
+		setupAutocomplete(evt);
 	});
 
 	ServerEval.listenForWatchUpdates(function(evt) {
@@ -515,6 +524,8 @@ $(document).ready(function() {
 
 	ServerEval.listenForNewResults(function(evt) {
 		if (evt.result_doc && evt.result_doc.expr && !(evt.result_doc.autocomplete || evt.result_doc.internal)) {
+			newExpression(evt.result_doc.expr);
+		} else if (evt.result_doc && evt.result_doc.internal) {
 			newExpression(evt.result_doc.expr);
 		}
 

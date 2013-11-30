@@ -22,8 +22,8 @@
 		eval: function(expr, options) {
 			ddp.call('serverEval/eval', [expr, options]);
 		},
-		_helper: function(command, args) {
-			ddp.call('serverEval/_helper', [command, args]);
+		executeHelper: function(command, args) {
+			ddp.call('serverEval/executeHelper', [command, args]);
 		},
 		clear: function() {
 			ddp.call('serverEval/clear');
@@ -116,7 +116,8 @@
 					});
 				}
 				ServerEval._metadataChanged({
-					supported_packages: doc.supported_packages
+					supported_packages: doc.supported_packages,
+					helpers: doc.helpers
 				});
 			}
 		});

@@ -137,6 +137,6 @@ input {
   border-radius: 5px;
 }
 
-#result_output_tmpl, #internal_output_tmpl, #watch_tmpl, #autocomplete_output_tmpl {
+#result_output_tmpl, #internal_output_tmpl, #watch_tmpl, #autocomplete_output_tmpl, #helper_output_tmpl {
   display: none;
 }
