@@ -270,10 +270,9 @@ var internalCommand = function(cmd) {
 		clearOutput();
 		positioning(true);
 		return true;
-	} else if (cmd === ".ls") {
-		ServerEval.eval('ServerEval.ls("**")', {
-			internal: true
-		});
+	} else if (cmd.match(/\.ls.*/)) {
+		var args = cmd.split(/\s+/g).slice(1);
+		ServerEval._helper('ls', args);
 		return true;
 	} else if (cmd === ".reload") {
 		window.location.reload();

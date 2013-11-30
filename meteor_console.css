@@ -44,6 +44,10 @@ ul.jqtree-tree .jqtree-toggler {
   border-bottom-width: thin;
 }
 
+.prompt {
+  color: darkcyan;
+}
+
 .watch {
   border-left: rgb(180, 180, 180);
   border-left-style: solid;
