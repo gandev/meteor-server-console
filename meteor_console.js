@@ -270,6 +270,14 @@ var internalCommand = function(cmd) {
 		clearOutput();
 		positioning(true);
 		return true;
+	} else if (cmd === ".ls") {
+		ServerEval.eval('ServerEval.ls("**")', {
+			internal: true
+		});
+		return true;
+	} else if (cmd === ".reload") {
+		window.location.reload();
+		return true;
 	} else if (cmd.match(/:use=.*/)) /* e.g. :use=custom-package */ {
 		package_scope = cmd.split("=")[1];
 		$package_scope.html(package_scope);
@@ -398,7 +406,9 @@ var setupAutocomplete = function(supported_packages) {
 	internalCommands = internalCommands.concat(packageTags);
 
 	var generalCommands = [
-		".clear"
+		".clear",
+		".reload",
+		".ls"
 	];
 
 	$("#run_eval").autocomplete({
@@ -505,7 +515,9 @@ $(document).ready(function() {
 	};
 
 	ServerEval.listenForNewResults(function(evt) {
-		var _call = evt.result_doc && evt.result_doc.expr && newExpression(evt.result_doc.expr);
+		if (evt.result_doc && evt.result_doc.expr && !(evt.result_doc.autocomplete || evt.result_doc.internal)) {
+			newExpression(evt.result_doc.expr);
+		}
 
 		//prevent to show autocompletes on reload
 		if (evt.result_doc.autocomplete && show_autocomplete) {

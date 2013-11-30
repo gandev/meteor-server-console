@@ -1,5 +1,15 @@
 /* TODO clean up this mess ... */
 
+* {
+  font-family: Menlo, Monaco, Consolas, dejavu sans mono, Lucida Console, monospace;
+  font-size: 11px;
+}
+
+ul.jqtree-tree .jqtree-toggler {
+  left: -1.1em;
+  top: 0.25em;
+}
+
 #console_view {
   width: 100%;
 }
@@ -28,8 +38,6 @@
 }
 
 .result {
-  font-family: monospace;
-  font-size: 0.9em;
   margin: 0;
   border-bottom: rgb(180, 180, 180);
   border-bottom-style: solid;
@@ -37,8 +45,6 @@
 }
 
 .watch {
-  font-family: monospace;
-  font-size: 0.9em;
   border-left: rgb(180, 180, 180);
   border-left-style: solid;
   border-left-width: thin;
@@ -55,15 +61,23 @@
   border-bottom-width: thin;
 }
 
-.input-group > span, .input-group > input {
-  font-family: monospace;
-  border: 0;
-  background-color: white;
-  font-size: 0.9em;
+#input_info {
+  padding-top: 4px;
+  padding-right: 7px;
+  padding-left: 10px;
+  float: left;
 }
 
-.input-group-addon {
-  padding-left: 10px;
+#input_eval {
+  overflow: hidden;
+  display: block;
+}
+
+input {
+  border: 0;
+  outline: none;
+  height: 22px;
+  width: 100%;
 }
 
 .watch .scope {
