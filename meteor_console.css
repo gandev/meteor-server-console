@@ -66,10 +66,13 @@ ul.jqtree-tree .jqtree-toggler {
 }
 
 #input_info {
-  padding-top: 4px;
   padding-right: 7px;
-  padding-left: 10px;
+  padding-top: 2px;
   float: left;
+}
+
+#input_info .prompt {
+  padding-left: 10px;
 }
 
 #input_eval {
@@ -77,7 +80,7 @@ ul.jqtree-tree .jqtree-toggler {
   display: block;
 }
 
-input {
+#run_eval {
   border: 0;
   outline: none;
   height: 22px;
@@ -108,7 +111,6 @@ input {
 }
 
 .current_scope {
-  margin-left: 10px;
   display: none;
 }
 

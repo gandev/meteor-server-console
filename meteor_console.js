@@ -268,20 +268,11 @@ var toggleWatch = function(reopen) {
 	}
 };
 
-var internalCommand = function(cmd) {
-	var $package_scope = $('#input_info span');
-	if (cmd === ".clear") {
-		clearOutput();
-		positioning(true);
-		return true;
-	} else if (cmd === ".reload") {
+var executeClientCommand = function(cmd) {
+	var $package_scope = $('.current_scope');
+
+	if (cmd === ":reload") {
 		window.location.reload();
-		return true;
-	} else if (cmd.match(/^\..*/)) {
-		var split_cmd = cmd.split(/\s+/g);
-		var command = split_cmd[0];
-		var args = split_cmd.slice(1);
-		ServerEval.executeHelper(command, args);
 		return true;
 	} else if (cmd.match(/:scope=.*/)) /* e.g. :scope=custom-package */ {
 		package_scope = cmd.split("=")[1];
@@ -333,6 +324,28 @@ var internalCommand = function(cmd) {
 			setWidth();
 		}
 		return true;
+	}
+};
+
+var executeServerCommand = function(cmd) {
+	if (cmd === ".clear") {
+		clearOutput();
+		positioning(true);
+		return true;
+	} else {
+		var split_cmd = cmd.split(/\s+/g);
+		var command = split_cmd[0];
+		var args = split_cmd.slice(1);
+		ServerEval.executeHelper(command, args);
+		return true;
+	}
+};
+
+var internalCommand = function(cmd) {
+	if (cmd.match(/^\..*/)) {
+		return executeServerCommand(cmd);
+	} else if (cmd.match(/^:.*/)) {
+		return executeClientCommand(cmd);
 	}
 	return false;
 };
@@ -399,26 +412,29 @@ var setupAutocomplete = function(metadata) {
 		return ":scope=" + pkg;
 	});
 
-	var internalCommands = [
+	var clientCommands = [
 		":set-port=",
 		":set-port=3000",
+		":set-host=",
+		":set-host=localhost",
 		":port",
-		":reset-scope",
+		":host",
 		":watch=",
 		":watch-view",
-		":watch-view60"
+		":watch-view60",
+		":reload",
+		":reset-scope"
 	];
-	internalCommands = internalCommands.concat(packageTags);
+	clientCommands = clientCommands.concat(packageTags);
 
 	var helperTags = _.map(metadata.helpers || [], function(helper) {
 		return "." + helper;
 	});
 
-	var generalCommands = [
-		".clear",
-		".reload"
+	var serverCommands = [
+		".clear"
 	];
-	generalCommands = generalCommands.concat(helperTags);
+	serverCommands = serverCommands.concat(helperTags);
 
 	$("#run_eval").autocomplete({
 		position: {
@@ -432,9 +448,9 @@ var setupAutocomplete = function(metadata) {
 			var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
 			var tags = [];
 			if (request.term.match(/^:/)) {
-				tags = internalCommands;
+				tags = clientCommands;
 			} else if (request.term.match(/^\./)) {
-				tags = generalCommands;
+				tags = serverCommands;
 			}
 
 			response($.grep(tags, function(item) {
