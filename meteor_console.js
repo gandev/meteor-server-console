@@ -456,8 +456,13 @@ var setupAutocomplete = function(metadata) {
 $(document).ready(function() {
 	focusInput();
 
-	$(document).bind('keydown', function() {
-		focusInput();
+	$(document).bind('keydown', function(evt) {
+		if (!evt.altKey && !evt.ctrlKey && !evt.metaKey &&
+			(evt.keyCode > 47 && evt.keyCode < 91 ||
+				evt.keyCode === 190 ||
+				evt.keyCode === 186)) {
+			focusInput();
+		}
 	});
 
 	//wire and initialize ui
