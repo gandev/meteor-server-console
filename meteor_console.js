@@ -163,6 +163,13 @@ var renderResult = function(doc) {
 	positioning(true);
 };
 
+var removeOldResults = function(max, clazz) {
+	var $elements = $("#output .result." + clazz);
+	if ($elements.length === max) {
+		$elements.first().remove();
+	}
+};
+
 var renderLog = function(doc) {
 	var $content = createTemplateInstance('result_log_tmpl');
 
@@ -175,9 +182,7 @@ var renderLog = function(doc) {
 	$content.find('.log_entry').append(doc.result.message);
 
 	//show only last 5 log entries
-	if ($("#output .log_entry").length === 3) {
-		$("#output .log_entry").first().parent().parent().remove();
-	}
+	removeOldResults(5, 'log');
 
 	$("#output").append($content);
 
@@ -204,9 +209,7 @@ var renderInternalMessage = function(state) {
 	$content.find('.internal_msg span').html(state.txt);
 
 	//show only last 3 internal messages
-	if ($("#output .internal_msg").length === 3) {
-		$("#output .internal_msg").first().parent().remove();
-	}
+	removeOldResults(3, 'internal');
 
 	$("#output").append($content);
 
@@ -242,9 +245,7 @@ var renderAutocomplete = function(doc) {
 	$content.find('.scope').html(doc.scope);
 
 	//show only last 2 autocompletes
-	if ($("#output .autocomplete").length === 2) {
-		$("#output .autocomplete").first().parent().remove();
-	}
+	removeOldResults(2, 'autocomplete');
 
 	$("#output").append($content);
 
