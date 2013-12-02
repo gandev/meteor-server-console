@@ -44,6 +44,10 @@ ul.jqtree-tree .jqtree-toggler {
   border-bottom-width: thin;
 }
 
+.log_entry {
+  margin: 0;
+}
+
 .prompt {
   color: darkcyan;
 }
@@ -139,6 +143,6 @@ ul.jqtree-tree .jqtree-toggler {
   border-radius: 5px;
 }
 
-#result_output_tmpl, #internal_output_tmpl, #watch_tmpl, #autocomplete_output_tmpl, #helper_output_tmpl {
+#result_output_tmpl, #internal_output_tmpl, #watch_tmpl, #autocomplete_output_tmpl, #helper_output_tmpl, #result_log_tmpl {
   display: none;
 }

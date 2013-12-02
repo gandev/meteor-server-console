@@ -105,7 +105,7 @@
 
 		//watch ServerEval.metadata()
 		ddp.watch("server-eval-metadata", function(doc, msg) {
-			if (msg === "added") {
+			if (msg === "added" || msg === "changed") {
 				clearTimeout(metaDataTimeout);
 				serverEvalPackages = doc.packages;
 				serverEvalVersion = doc.version;

@@ -163,6 +163,27 @@ var renderResult = function(doc) {
 	positioning(true);
 };
 
+var renderLog = function(doc) {
+	var $content = createTemplateInstance('result_log_tmpl');
+
+	if (doc.err || doc.result && doc.result.level === 'error') {
+		$content.find('.label').addClass('label-danger');
+	} else {
+		$content.find('.label').addClass('label-success');
+	}
+
+	$content.find('.log_entry').append(doc.result.message);
+
+	//show only last 5 log entries
+	if ($("#output .log_entry").length === 3) {
+		$("#output .log_entry").first().parent().parent().remove();
+	}
+
+	$("#output").append($content);
+
+	positioning(true);
+};
+
 //inserts a new internal message into the dom
 var renderInternalMessage = function(state) {
 	var $content = createTemplateInstance('internal_output_tmpl');
@@ -599,6 +620,8 @@ $(document).ready(function() {
 
 				renderAutocomplete(evt.result_doc);
 			}
+		} else if (evt.result_doc.log) {
+			renderLog(evt.result_doc);
 		} else if (!evt.result_doc.autocomplete) {
 			//console.time("render-result-time");
 			renderResult(evt.result_doc);
