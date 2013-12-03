@@ -46,6 +46,7 @@ ul.jqtree-tree .jqtree-toggler {
 
 .log_entry {
   margin: 0;
+  white-space: pre;
 }
 
 .prompt {

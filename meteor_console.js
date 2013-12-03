@@ -179,7 +179,7 @@ var renderLog = function(doc) {
 		$content.find('.label').addClass('label-success');
 	}
 
-	$content.find('.log_entry').append(doc.result.message);
+	$content.find('.log_entry').append(escapeHtml(doc.result.message));
 
 	//show only last 5 log entries
 	removeOldResults(5, 'log');
