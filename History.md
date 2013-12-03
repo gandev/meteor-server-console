@@ -7,10 +7,21 @@
 - syntax highlighting in input + allow multiple lines
 - watches with update interval
 
+current bugs/limitations:
+- results returning false
+- autocomplete shortcut
+- styling on different platforms
+
 maybe..
-- js-git integration to (at least) commit, push, pull project
 - basic console commands like cd, ls, touch, mkdir, ...
 - insert package scope eval per command
+
+## v0.5 - helpers and logging
+
+- execute helper functions by executing .helper in console (supported helpers autocomplete)
+- git command wrapper implemented with helper functions
+- optionally showing server log entries
+- minor usability improvements
 
 ## v0.4 - watch it
 
