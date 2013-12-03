@@ -1,21 +1,3 @@
-## before v1.0
-
-- solution for performance issues with very large objects
-  + nprogress loading progress
-- some kind of EJSON support
-- show types on autocomplete
-- syntax highlighting in input + allow multiple lines
-- watches with update interval
-
-current bugs/limitations:
-- results returning false
-- autocomplete shortcut
-- styling on different platforms
-
-maybe..
-- basic console commands like cd, ls, touch, mkdir, ...
-- insert package scope eval per command
-
 ## v0.5 - helpers and logging
 
 - execute helper functions by executing .helper in console (supported helpers autocomplete)
