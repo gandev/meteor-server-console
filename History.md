@@ -1,16 +1,9 @@
-## before v1.0
+## v0.5 - helpers and logging
 
-- solution for performance issues with very large objects
-  + nprogress loading progress
-- some kind of EJSON support
-- show types on autocomplete
-- syntax highlighting in input + allow multiple lines
-- watches with update interval
-
-maybe..
-- js-git integration to (at least) commit, push, pull project
-- basic console commands like cd, ls, touch, mkdir, ...
-- insert package scope eval per command
+- execute helper functions by executing .helper in console (supported helpers autocomplete)
+- git command wrapper implemented with helper functions
+- optionally showing server log entries
+- minor usability improvements
 
 ## v0.4 - watch it
 
