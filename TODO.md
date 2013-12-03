@@ -18,10 +18,9 @@ for both, meteor-server-console and [meteor-server-eval](https://github.com/gand
 
 ### current bugs/limitations:
 
-- results returning false
 - autocomplete shortcut
 - styling on different platforms
-- log styling, colors and indentation
+- log colors
 - make all logs appear like 1 line and provide expand for the rest
 
 ### maybe..
