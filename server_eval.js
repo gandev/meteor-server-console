@@ -14,6 +14,11 @@
 		_current: null
 	};
 
+	var result_listeners = $.Callbacks();
+	var server_state_listeners = $.Callbacks();
+	var metadata_listeners = $.Callbacks();
+	var watch_update_listeners = $.Callbacks();
+	var watch_removed_listeners = $.Callbacks();
 
 	ServerEval = {
 		removeWatch: function(id) {
@@ -41,40 +46,34 @@
 			return currentPort;
 		},
 		listenForServerState: function(cb) {
-			$('body').on('server-eval-server-state', cb);
+			server_state_listeners.add(cb);
 		},
 		listenForNewResults: function(cb) {
-			$('body').on('server-eval-new-result', cb);
+			result_listeners.add(cb);
 		},
 		listenForMetadata: function(cb) {
-			$('body').on('server-eval-metadata', cb);
+			metadata_listeners.add(cb);
 		},
 		listenForWatchUpdates: function(cb) {
-			$('body').on('server-eval-watch', cb);
+			watch_update_listeners.add(cb);
 		},
 		listenForWatchRemoved: function(cb) {
-			$('body').on('server-eval-watch-removed', cb);
+			watch_removed_listeners.add(cb);
 		},
 		_serverStateChanged: function(state) {
-			var serverStateEvent = $.Event("server-eval-server-state", state);
-			jQuery.event.props.push("dataTransfer");
-			$("body").trigger(serverStateEvent);
+			server_state_listeners.fire(state);
 		},
 		_newResult: function(result_doc) {
-			var newResultEvent = $.Event("server-eval-new-result", result_doc);
-			$("body").trigger(newResultEvent);
+			result_listeners.fire(result_doc);
 		},
 		_metadataChanged: function(metadata) {
-			var metadatEvent = $.Event("server-eval-metadata", metadata);
-			$("body").trigger(metadatEvent);
+			metadata_listeners.fire(metadata);
 		},
 		_watchChanged: function(watch_result) {
-			var watchEvent = $.Event("server-eval-watch", watch_result);
-			$("body").trigger(watchEvent);
+			watch_update_listeners.fire(watch_result);
 		},
 		_watchRemoved: function(watch_result) {
-			var watchEvent = $.Event("server-eval-watch-removed", watch_result);
-			$("body").trigger(watchEvent);
+			watch_removed_listeners.fire(watch_result);
 		}
 	};
 
