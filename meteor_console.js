@@ -95,8 +95,7 @@ var createTree = function($content, result) {
 		onCreateLi: function(node, $li) {
 			//use text as html because the treedata includes html
 			var $title = $li.find('.jqtree-title');
-			var html = ansiConvert.toHtml($title.text());
-			$title.html(html);
+			$title.html($title.text());
 		}
 	});
 };
