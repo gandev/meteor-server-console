@@ -16,6 +16,8 @@ var watch_view_toggling;
 
 var show_autocomplete = false;
 
+var ansiConvert = new AnsiToHtml();
+
 var focusInput = function() {
 	$('#run_eval').focus();
 };
@@ -93,7 +95,8 @@ var createTree = function($content, result) {
 		onCreateLi: function(node, $li) {
 			//use text as html because the treedata includes html
 			var $title = $li.find('.jqtree-title');
-			$title.html($title.text());
+			var html = ansiConvert.toHtml($title.text());
+			$title.html(html);
 		}
 	});
 };
@@ -179,7 +182,7 @@ var renderLog = function(doc) {
 		$content.find('.label').addClass('label-success');
 	}
 
-	$content.find('.log_entry').append(escapeHtml(doc.result.message));
+	$content.find('.log_entry').append(ansiConvert.toHtml(escapeHtml(doc.result.message)));
 
 	//show only last 5 log entries
 	removeOldResults(5, 'log');
