@@ -10,6 +10,10 @@ ul.jqtree-tree .jqtree-toggler {
   top: 0.25em;
 }
 
+.preserve-whitespace {
+  white-space: pre;
+}
+
 #console_view {
   width: 100%;
 }
@@ -46,7 +50,6 @@ ul.jqtree-tree .jqtree-toggler {
 
 .log_entry {
   margin: 0;
-  white-space: pre;
 }
 
 .prompt {

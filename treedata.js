@@ -6,7 +6,7 @@
 //  ____TYPE____ for special objects (e.g. Error, Function, ...) 
 var _typeHtml = function(value) {
 	var type = "unknown";
-	var type_style = 'style="color: ';
+	var type_style = 'style="white-space: pre; color: ';
 	if (value.____TYPE____) {
 		type = value.____TYPE____;
 		if (type === "[Circular]") {
