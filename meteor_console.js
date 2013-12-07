@@ -176,12 +176,36 @@ var renderLog = function(doc) {
 	var $content = createTemplateInstance('result_log_tmpl');
 
 	if (doc.err || doc.result && doc.result.level === 'error') {
-		$content.find('.label').addClass('label-danger');
+		$content.find('.log_level').addClass('label-danger');
 	} else {
-		$content.find('.label').addClass('label-success');
+		$content.find('.log_level').addClass('label-success');
 	}
 
-	$content.find('.log_entry').append(ansiConvert.toHtml(escapeHtml(doc.result.message)));
+	var result_message = ansiConvert.toHtml(escapeHtml(doc.result.message));
+	var lines = doc.result && result_message.split(/\n/);
+	lines = _.filter(lines || [], function(line) {
+		return !_.isEmpty(line);
+	});
+	if (lines.length > 0) {
+		$content.find('.log_entry').append(lines[0]);
+
+		var $additional_lines = $content.find('.log_additional_lines');
+		if (lines.length > 1) {
+			$additional_lines.append(lines.slice(1).join('\n'));
+
+			$content.find('.additional_lines').on('click', function() {
+				if ($additional_lines.css('display') !== 'none') {
+					$additional_lines.css('display', 'none');
+				} else {
+					$additional_lines.css('display', 'block');
+				}
+			});
+		} else {
+			$content.find('.additional_lines').css('display', 'none');
+		}
+
+		$additional_lines.css('display', 'none');
+	}
 
 	//show only last 5 log entries
 	removeOldResults(5, 'log');
