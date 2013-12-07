@@ -186,6 +186,7 @@ var renderLog = function(doc) {
 	lines = _.filter(lines || [], function(line) {
 		return !_.isEmpty(line);
 	});
+
 	if (lines.length > 0) {
 		$content.find('.log_entry').append(lines[0]);
 
