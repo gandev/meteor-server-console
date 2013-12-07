@@ -173,16 +173,17 @@ var removeOldResults = function(max, clazz) {
 };
 
 var renderLog = function(doc) {
+	doc.result = doc.result || {};
 	var $content = createTemplateInstance('result_log_tmpl');
 
-	if (doc.err || doc.result && doc.result.level === 'error') {
+	if (doc.err || doc.result.level === 'error') {
 		$content.find('.log_level').addClass('label-danger');
 	} else {
 		$content.find('.log_level').addClass('label-success');
 	}
 
 	var result_message = ansiConvert.toHtml(escapeHtml(doc.result.message));
-	var lines = doc.result && result_message.split(/\n/);
+	var lines = result_message.split(/\n/);
 	lines = _.filter(lines || [], function(line) {
 		return !_.isEmpty(line);
 	});
@@ -194,18 +195,31 @@ var renderLog = function(doc) {
 		if (lines.length > 1) {
 			$additional_lines.append(lines.slice(1).join('\n'));
 
-			$content.find('.additional_lines').on('click', function() {
+			$content.find('.show_additionals').on('click', function() {
 				if ($additional_lines.css('display') !== 'none') {
 					$additional_lines.css('display', 'none');
+					$(this).removeClass('glyphicon-minus');
+					$(this).addClass('glyphicon-plus');
+					focusInput();
 				} else {
 					$additional_lines.css('display', 'block');
+					$(this).removeClass('glyphicon-plus');
+					$(this).addClass('glyphicon-minus');
 				}
 			});
 		} else {
+			$content.find('.log_level').css('padding-bottom', '2px'); //TODO
 			$content.find('.additional_lines').css('display', 'none');
 		}
 
 		$additional_lines.css('display', 'none');
+	}
+
+	if (doc.scope) {
+		$content.find('.scope').html(doc.scope);
+		$content.find('.scope').append(' [' + doc.eval_exec_time + 'ms]');
+	} else if (doc.result.file) {
+		$content.find('.scope').html(doc.result.file);
 	}
 
 	//show only last 5 log entries

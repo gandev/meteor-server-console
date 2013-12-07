@@ -40,10 +40,15 @@
     </div>
 
     <div id="result_log_tmpl" class="result log">
-        <span class="log_level label">Log</span>
-        <span class="log_entry preserve-whitespace"></span> 
-        <span class="label label-default additional_lines">...</span>
-        <div class="log_additional_lines preserve-whitespace "></div>
+        <div>
+          <span class="log_level label">Log</span>
+          <button type="button" class="btn btn-default btn-xs additional_lines">
+            <span class="glyphicon glyphicon-plus show_additionals"></span>
+          </button>
+          <span class="log_entry preserve-whitespace"></span>
+          <span class="label label-warning scope"></span>
+        </div>
+        <div class="log_additional_lines preserve-whitespace"></div>
     </div>
 
     <div id="autocomplete_output_tmpl" class="result autocomplete">
