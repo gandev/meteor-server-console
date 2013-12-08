@@ -349,11 +349,25 @@ var executeClientCommand = function(cmd) {
 			txt: 'changed port to [PORT: ' + port + ']',
 			type: "MSG"
 		});
-		ServerEval.changeServer(port);
+		ServerEval.changeServer(null, port);
 		return true;
 	} else if (cmd.match(/:port\d*/)) {
 		renderInternalMessage({
 			txt: '[PORT: ' + ServerEval.currentPort() + ']',
+			type: 'MSG'
+		});
+		return true;
+	} else if (cmd.match(/:set-host=\d*/)) /* e.g. :host=localhost */ {
+		var host = cmd.split("=")[1];
+		renderInternalMessage({
+			txt: 'changed host to [HOST: ' + host + ']',
+			type: "MSG"
+		});
+		ServerEval.changeServer(host);
+		return true;
+	} else if (cmd.match(/:host\d*/)) {
+		renderInternalMessage({
+			txt: '[HOST: ' + ServerEval.currentHost() + ']',
 			type: 'MSG'
 		});
 		return true;

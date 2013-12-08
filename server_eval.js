@@ -5,6 +5,7 @@
 	var HOST = "localhost"; //"192.168.1.102";
 	var PORT = 3000; //default like meteor
 	var currentPort;
+	var currentHost;
 	//local copy of server-eval metadata
 	var serverEvalPackages = [];
 	var serverEvalVersion;
@@ -40,14 +41,25 @@
 		init: function() {
 			initCommunication();
 		},
-		changeServer: function(port) {
+		changeServer: function(host, port) {
+			var restart = false;
+			if (_.isString(host) && host !== HOST) {
+				HOST = host;
+				restart = true;
+			}
 			if (!isNaN(port) && port !== PORT) {
 				PORT = port;
+				restart = true;
+			}
+			if (restart) {
 				ddp.close();
 			}
 		},
 		currentPort: function() {
 			return currentPort;
+		},
+		currentHost: function() {
+			return currentHost;
 		},
 		listenForServerState: function(cb) {
 			server_state_listeners.add(cb);
@@ -86,7 +98,7 @@
 		if (SERVER_STATES._current !== state) {
 			SERVER_STATES._current = state;
 			ServerEval._serverStateChanged({
-				state_txt: state + " [PORT: " + (currentPort || PORT) + "]",
+				state_txt: state + " [" + (currentHost || 'localhost') + ':' + (currentPort || PORT) + "]",
 				state_type: state === SERVER_STATES.UP ? "SUCCESS" : "ERROR"
 			});
 		}
@@ -96,6 +108,7 @@
 	//starts subscriptions and server polling
 	var setupDataTransfer = function() {
 		currentPort = PORT;
+		currentHost = HOST;
 		setServerState(SERVER_STATES.UP);
 
 		last_crash_message = null;
@@ -103,7 +116,7 @@
 		//3 second timeout than assume that server doesn't use server-eval
 		var metaDataTimeout = setTimeout(function() {
 			ServerEval._serverStateChanged({
-				state_txt: "server-eval missing on server: [PORT: " + currentPort + ']',
+				state_txt: 'server-eval missing on server: [' + currentHost + ':' + currentPort + ']',
 				state_type: "ERROR"
 			});
 		}, 3000);
@@ -116,7 +129,7 @@
 				serverEvalVersion = doc.version;
 				if (serverEvalVersion !== VERSION) {
 					ServerEval._serverStateChanged({
-						state_txt: "server-eval [PORT: " + currentPort + ']' + " wrong version, expected: " + VERSION + " found: " + serverEvalVersion,
+						state_txt: 'server-eval [' + currentHost + ':' + currentPort + ']' + " wrong version, expected: " + VERSION + " found: " + serverEvalVersion,
 						state_type: "ERROR"
 					});
 				}
