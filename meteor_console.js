@@ -1,5 +1,3 @@
-var VERSION = "0.4";
-
 var WATCH_WIDTH = 30; //percent
 
 var expressionHistory = [];

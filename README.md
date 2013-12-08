@@ -14,43 +14,64 @@ I'm publishing meteor-server-console as a "Chrome DevTools" extension but its al
 
 ## Use
 
-*    Connection
+### Connection
      - automatically connects to localhost:3000 by default, to change the port see Input commands 
        ("ws://localhost:3000/websocket")
      - polls the server and connects automatically when server starts/restarts
 
-*    Evaluations
+### Evaluations
      - are executed as eval(expression) in meteor node.js container, optionally scoped to package context
      - REQUIREMENT: [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval)
 
-*    Input
-     - type in a expression and hit ENTER to evaluate
-     - type in .clear to empty the list of last evaluations
-     - select last evaluated expressions with the UP and DOWN keys
-     - type in an object name or part of it and press CTRL + SPACE to trigger autocomplete
-     - typing se: opens a popup with internal commands:
-         - se:use=package_name / sets the package in which evaluations should be scoped if supported
-         - se:reset / resets scope to global
-         - se:set-port=4000 / sets the port on localhost to switch to another app
-         - se:port / shows current port
-         - se:watch=expr / add/refresh expression to/in watch view and open if closed
-         - se:watch-view / toggle watch view open/closed
-         - se:watch-view60 / change watch view width in percent (arbitrary)
+### Input
 
-*    Output (not stored in app db)
+*    general:
+     - type in a expression and hit ENTER to evaluate
+     - type in an object name or part of it and press CTRL + SPACE to trigger autocomplete
+     - select last evaluated expressions with the UP and DOWN keys
+
+*    server commands (helpers):
+     - type . and a popup with all supported server side helper functions shows up
+         - __.clear__ clear console output
+         - __.toggleLogging__ toggle interception of server side logs (default: ON)
+         - __.updateMetadata__ mostly internal to update metadata like supported packages/helper
+         - __.git__ basically calls git in the project repository (+ shortcut commands .gitStatus/.gitDiff/...)
+         __- stay tuned for scaffolding with abee and other useful helpers__
+
+*    client commands:
+     - type : and a popup with the following commands shows up
+         - __:scope=package_name__ sets the package in which evaluations should be scoped if supported
+         - __:reset-scope__ resets scope to global
+         - __:set-port=4000__ sets the port to switch app instance
+         - __:port__ shows current port
+         - __:set-host=localhost__ sets the host to switch app instance
+         - __:host__ shows current host
+         - __:watch=expr__ add/refresh expression to/in watch view and open if closed
+         - __:watch-view__ toggle watch view open/closed
+         - __:watch-view60__ change watch view width in percent (arbitrary)
+         - __:reload__ just reload the page
+
+### Output (not stored in app db)
+
+*    internal messages/ autocomplete
+     - Error=red, Info=orange, SUCCESS=green
+     - autocomplete displays object keys in a table and/or sets the input value to matching key
+
+*    evaluation results
      - expression in first line (leading #), result below and scope with evaluation time in milliseconds on the right side
-     - internal messages (Error=red, Info=orange, SUCCESS=green)
-     - Results:
-         - Strings, Numbers, Booleans directly
-         - Objects as tree
+     - Strings, Numbers, Booleans directly
+     - Objects as tree
              - different colors for different types (Function=blue, Object=green, Array=orange, Circular=red)
              - Objects are shown with name (if available) of constructor Function
              - Circular References are marked and shown with path
              - Errors with stacktrace (special format with the attempt of highlighting more relevant lines)
-     - Autocomplete
-         - show keys of an object in a table and/or set input value
 
-*   Watch (stored in app db)
+*    server log (see server commands)
+     - leading green (or Error=red) label with static text 'Log' + log message (expandable if multi line)
+     - if the server log is intercepted, all log entries will get rendered in output window
+     - the calls of helper functions can also produce log entries wich are always displayed
+
+### Watch
      - watch view, refresh and remove watches
      - watches are persistent on the server and automatically refreshed if server restarts
 

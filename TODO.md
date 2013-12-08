@@ -16,12 +16,12 @@ for both, meteor-server-console and [meteor-server-eval](https://github.com/gand
 - syntax highlighting in input + allow multiple lines
 - watches with update interval
 
+- abee scaffolding + some kind of test runner support
+
 ### current bugs/limitations:
 
 - autocomplete shortcut
 - styling on different platforms
-- log colors
-- make all logs appear like 1 line and provide expand for the rest
 
 ### maybe..
 

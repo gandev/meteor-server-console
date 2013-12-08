@@ -1,5 +1,6 @@
 (function() {
 
+	var VERSION = "0.5";
 	var ddp;
 	var HOST = "localhost"; //"192.168.1.102";
 	var PORT = 3000; //default like meteor
