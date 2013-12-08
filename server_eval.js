@@ -6,6 +6,7 @@
 	var PORT = 3000; //default like meteor
 	var currentPort;
 	var currentHost;
+	var result_sub_ready = false;
 	//local copy of server-eval metadata
 	var serverEvalPackages = [];
 	var serverEvalVersion;
@@ -90,6 +91,9 @@
 		},
 		_watchRemoved: function(watch_result) {
 			watch_removed_listeners.fire(watch_result);
+		},
+		_isResultSubReady: function() {
+			return result_sub_ready;
 		}
 	};
 
@@ -165,7 +169,9 @@
 				});
 			}
 		});
-		ddp.subscribe("server-eval-results");
+		ddp.subscribe("server-eval-results").then(function() {
+			result_sub_ready = true;
+		});
 
 		// poll server and try reinit when server down
 		var nIntervId = setInterval(function() {

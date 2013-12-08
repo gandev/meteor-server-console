@@ -12,8 +12,6 @@ var package_scope;
 var hiddenWatch = true;
 var watch_view_toggling;
 
-var show_autocomplete = false;
-
 var ansiConvert = new AnsiToHtml();
 
 var focusInput = function() {
@@ -149,11 +147,11 @@ var renderWatch = function(watch) {
 //inserts a new output entry into the dom
 //expr + scope + object tree (jqtree) / plain div with non object result
 var renderResult = function(doc) {
-	var $content = createTemplateInstance(doc.internal ? 'helper_output_tmpl' : 'result_output_tmpl');
+	var $content = createTemplateInstance(doc.helper ? 'helper_output_tmpl' : 'result_output_tmpl');
 
 	createReturnValue($content, doc, function(e) {
 		if (!e.node.parent.parent) {
-			focusInput();
+			//focusInput();
 			positioning(true);
 		}
 	});
@@ -172,6 +170,8 @@ var removeOldResults = function(max, clazz) {
 
 var renderLog = function(doc) {
 	doc.result = doc.result || {};
+	if (!doc.result.message) return;
+
 	var $content = createTemplateInstance('result_log_tmpl');
 
 	if (doc.err || doc.result.level === 'error') {
@@ -182,9 +182,16 @@ var renderLog = function(doc) {
 
 	var result_message = ansiConvert.toHtml(escapeHtml(doc.result.message));
 	var lines = result_message.split(/\n/);
-	lines = _.filter(lines || [], function(line) {
-		return !_.isEmpty(line);
+	var firstNotEmptyLine = -1;
+	var lastNotEmptyLine = 0;
+	_.each(lines || [], function(line, idx) {
+		if (!_.isEmpty(line) && firstNotEmptyLine === -1) {
+			firstNotEmptyLine = idx;
+		} else if (!_.isEmpty(line)) {
+			lastNotEmptyLine = idx;
+		}
 	});
+	lines = lines.slice(firstNotEmptyLine, lastNotEmptyLine + 1);
 
 	if (lines.length > 0) {
 		$content.find('.log_entry').append(lines[0]);
@@ -193,24 +200,30 @@ var renderLog = function(doc) {
 		if (lines.length > 1) {
 			$additional_lines.append(lines.slice(1).join('\n'));
 
-			$content.find('.show_additionals').on('click', function() {
+			$content.find('.additional_lines').on('click', function() {
 				if ($additional_lines.css('display') !== 'none') {
 					$additional_lines.css('display', 'none');
-					$(this).removeClass('glyphicon-minus');
-					$(this).addClass('glyphicon-plus');
-					focusInput();
+					$(this).find('.glyphicon').removeClass('glyphicon-minus');
+					$(this).find('.glyphicon').addClass('glyphicon-plus');
+					//focusInput();
 				} else {
 					$additional_lines.css('display', 'block');
-					$(this).removeClass('glyphicon-plus');
-					$(this).addClass('glyphicon-minus');
+					$(this).find('.glyphicon').removeClass('glyphicon-plus');
+					$(this).find('.glyphicon').addClass('glyphicon-minus');
 				}
 			});
+
+			if (doc.helper && ServerEval._isResultSubReady()) {
+				$additional_lines.css('display', 'block');
+				$content.find('.additional_lines .glyphicon').removeClass('glyphicon-plus');
+				$content.find('.additional_lines .glyphicon').addClass('glyphicon-minus');
+			} else {
+				$additional_lines.css('display', 'none');
+			}
 		} else {
 			$content.find('.log_level').css('padding-bottom', '2px'); //TODO
 			$content.find('.additional_lines').css('display', 'none');
 		}
-
-		$additional_lines.css('display', 'none');
 	}
 
 	if (doc.scope) {
@@ -224,7 +237,7 @@ var renderLog = function(doc) {
 	}
 
 	//show only last 5 log entries
-	removeOldResults(5, 'log');
+	removeOldResults(10, 'log');
 
 	$("#output").append($content);
 
@@ -460,7 +473,6 @@ var consoleHandler = function(evt) {
 			exprCursorState = "bottom";
 		}
 	} else if (evt.ctrlKey && evt.keyCode === 32) {
-		show_autocomplete = true;
 		eval_str = eval_str || '';
 		var dotIdx = eval_str.lastIndexOf('.');
 		var search;
@@ -629,14 +641,14 @@ $(document).ready(function() {
 	};
 
 	ServerEval.listenForNewResults(function(evt) {
-		if (evt.result_doc && evt.result_doc.expr && !(evt.result_doc.autocomplete || evt.result_doc.internal)) {
+		if (evt.result_doc && evt.result_doc.expr && !(evt.result_doc.autocomplete || evt.result_doc.helper)) {
 			newExpression(evt.result_doc.expr);
-		} else if (evt.result_doc && evt.result_doc.internal) {
+		} else if (evt.result_doc && evt.result_doc.helper) {
 			newExpression(evt.result_doc.expr);
 		}
 
 		//prevent to show autocompletes on reload
-		if (evt.result_doc.autocomplete && show_autocomplete) {
+		if (evt.result_doc.autocomplete && ServerEval._isResultSubReady()) {
 			if (evt.result_doc.result.length === 1) {
 				var first_completion = evt.result_doc.result[0];
 				completeInputValue(first_completion);

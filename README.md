@@ -50,7 +50,7 @@ I'm publishing meteor-server-console as a "Chrome DevTools" extension but its al
          - __:watch=expr__ add/refresh expression to/in watch view and open if closed
          - __:watch-view__ toggle watch view open/closed
          - __:watch-view60__ change watch view width in percent (arbitrary)
-         - __:reload__ just reload the page
+         - __:reload__ reload the page, all results before last server start will disappear
 
 ### Output (not stored in app db)
 

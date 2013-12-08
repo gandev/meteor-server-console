@@ -20,6 +20,7 @@ for both, meteor-server-console and [meteor-server-eval](https://github.com/gand
 
 ### current bugs/limitations:
 
+- internal --> helper + result sub ready/remove show autocomplete
 - autocomplete shortcut
 - styling on different platforms
 
