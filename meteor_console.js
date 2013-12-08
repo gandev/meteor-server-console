@@ -218,6 +218,9 @@ var renderLog = function(doc) {
 		$content.find('.scope').append(' [' + doc.eval_exec_time + 'ms]');
 	} else if (doc.result.file) {
 		$content.find('.scope').html(doc.result.file);
+		if (doc.result.line) {
+			$content.find('.scope').append(' [line: ' + doc.result.line + ']');
+		}
 	}
 
 	//show only last 5 log entries
