@@ -3,6 +3,8 @@ meteor-server-console
 
 is a tool which connects to a [meteor](http://www.meteor.com) server running the [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval) smartpackage and provides a way to evaluate javascript in the server environment.
 
+__With version 0.5 begins the evolution towards a terminal like development tool with helper functions and server log. First implemented helpers support git. Planned is support for [abee scaffolding](https://github.com/fastrde/abee) and test runner. Please feel free to request features, suggest improvements or even add your own helpers like [meteor-server-eval git helpers](https://github.com/gandev-de/meteor-server-eval/blob/master/git_helpers.js)__
+
 I'm publishing meteor-server-console as a "Chrome DevTools" extension but its also possible to use it in other browsers
 (just clone the repository and open meteor_console.html).
 
@@ -15,13 +17,13 @@ I'm publishing meteor-server-console as a "Chrome DevTools" extension but its al
 ## Use
 
 ### Connection
-     - automatically connects to localhost:3000 by default, to change the port see Input commands 
-       ("ws://localhost:3000/websocket")
-     - polls the server and connects automatically when server starts/restarts
+*    automatically connects to localhost:3000 by default, to change the port see Input->client commands 
+     ("ws://localhost:3000/websocket")
+*    polls the server and connects automatically when server starts/restarts
 
 ### Evaluations
-     - are executed as eval(expression) in meteor node.js container, optionally scoped to package context
-     - REQUIREMENT: [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval)
+*    are executed as eval(expression) in meteor node.js container, optionally scoped to package context
+*    REQUIREMENT: [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval)
 
 ### Input
 
@@ -36,7 +38,6 @@ I'm publishing meteor-server-console as a "Chrome DevTools" extension but its al
          - __.toggleLogging__ toggle interception of server side logs (default: ON)
          - __.updateMetadata__ mostly internal to update metadata like supported packages/helper
          - __.git__ basically calls git in the project repository (+ shortcut commands .gitStatus/.gitDiff/...)
-         __- stay tuned for scaffolding with abee and other useful helpers__
 
 *    client commands:
      - type : and a popup with the following commands shows up
@@ -72,8 +73,8 @@ I'm publishing meteor-server-console as a "Chrome DevTools" extension but its al
      - the calls of helper functions can also produce log entries wich are always displayed
 
 ### Watch
-     - watch view, refresh and remove watches
-     - watches are persistent on the server and automatically refreshed if server restarts
+*    watch view, refresh and remove watches
+*    watches are persistent on the server and automatically refreshed if server restarts
 
 ## In action...
 
