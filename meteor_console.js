@@ -143,7 +143,7 @@ var renderWatch = function(watch) {
 	});
 
 	//is called to always see the input even if results are higher then window height
-	positioning(true);
+	positioning();
 };
 
 //inserts a new output entry into the dom
