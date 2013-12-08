@@ -51,6 +51,7 @@ I'm publishing meteor-server-console as a "Chrome DevTools" extension but its al
          - __:watch-view__ toggle watch view open/closed
          - __:watch-view60__ change watch view width in percent (arbitrary)
          - __:reload__ reload the page, all results before last server start will disappear
+         - __:max-log-entries=10__ sets the maximum number of non helper logs in output and deletes if reached
 
 ### Output (not stored in app db)
 

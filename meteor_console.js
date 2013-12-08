@@ -1,5 +1,7 @@
 var WATCH_WIDTH = 30; //percent
 
+var MAX_LOG_ENTRIES = 5;
+
 var expressionHistory = [];
 var watches = {};
 //vars to track selection in last expression history
@@ -163,8 +165,10 @@ var renderResult = function(doc) {
 
 var removeOldResults = function(max, clazz) {
 	var $elements = $("#output .result." + clazz);
-	if ($elements.length === max) {
-		$elements.first().remove();
+	for (var i = 0; i <= $elements.length; i++) {
+		if (i > max) {
+			$("#output .result." + clazz).first().remove();
+		}
 	}
 };
 
@@ -192,6 +196,10 @@ var renderLog = function(doc) {
 		}
 	});
 	lines = lines.slice(firstNotEmptyLine, lastNotEmptyLine + 1);
+
+	if (!doc.helper) {
+		$content.addClass('without_request');
+	}
 
 	if (lines.length > 0) {
 		$content.find('.log_entry').append(lines[0]);
@@ -236,10 +244,9 @@ var renderLog = function(doc) {
 		}
 	}
 
-	//show only last 5 log entries
-	removeOldResults(10, 'log');
-
 	$("#output").append($content);
+
+	removeOldResults(MAX_LOG_ENTRIES, 'log.without_request');
 
 	positioning(true);
 };
@@ -263,11 +270,9 @@ var renderInternalMessage = function(state) {
 	$content.find('.internal_msg span').addClass('label-' + lbl);
 	$content.find('.internal_msg span').html(state.txt);
 
-	//show only last 3 internal messages
-	removeOldResults(3, 'internal');
-
 	$("#output").append($content);
 
+	removeOldResults(3, 'internal');
 	positioning(true);
 };
 
@@ -299,10 +304,9 @@ var renderAutocomplete = function(doc) {
 	$content.find('.eval_expr span').html(doc.expr);
 	$content.find('.scope').html(doc.scope);
 
-	//show only last 2 autocompletes
-	removeOldResults(2, 'autocomplete');
-
 	$("#output").append($content);
+
+	removeOldResults(2, 'autocomplete');
 
 	positioning(true);
 };
@@ -415,6 +419,13 @@ var executeClientCommand = function(cmd) {
 			setWidth();
 		}
 		return true;
+	} else if (cmd.match(/:max-log-entries=/)) {
+		var max = parseInt(cmd.split("=")[1], 10);
+		if (!isNaN(max)) {
+			MAX_LOG_ENTRIES = max;
+			removeOldResults(MAX_LOG_ENTRIES, 'log.without_request');
+		}
+		return true;
 	}
 };
 
@@ -512,6 +523,7 @@ var setupAutocomplete = function(metadata) {
 		":watch=",
 		":watch-view",
 		":watch-view60",
+		":max-log-entries=10",
 		":reload",
 		":reset-scope"
 	];
