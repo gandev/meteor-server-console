@@ -1,16 +1,11 @@
 {
 	"name": "meteor-server-console",
-	"version": "0.4",
-	"description": "meteor server (node.js) console",
+	"version": "0.5",
+	"description": "Connect to a meteor server, evaluate expressions or execute custom helper functions and browse the results/log output.",
 	"devtools_page": "panel.html",
-	"options_page": "meteor_console.html",
 	"icons": {
 		"128": "meteor.png"
 	},
 	"minimum_chrome_version": "18",
-	"permissions": [
-		"tabs",
-		"contextMenus"
-	],
 	"manifest_version": 2
 }

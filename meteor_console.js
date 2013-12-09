@@ -142,7 +142,6 @@ var renderWatch = function(watch) {
 		ServerEval.removeWatch(watch._id);
 	});
 
-	//is called to always see the input even if results are higher then window height
 	positioning();
 };
 
@@ -355,12 +354,12 @@ var executeClientCommand = function(cmd) {
 	if (cmd === ":reload") {
 		window.location.reload();
 		return true;
-	} else if (cmd.match(/:scope=.*/)) /* e.g. :scope=custom-package */ {
+	} else if (cmd.match(/:scope=.*/)) {
 		package_scope = cmd.split("=")[1];
 		$package_scope.html(package_scope);
 		$package_scope.show();
 		return true;
-	} else if (cmd.match(/:set-port=\d*/)) /* e.g. :port=4000 */ {
+	} else if (cmd.match(/:set-port=\d*/)) {
 		var port = cmd.split("=")[1];
 		renderInternalMessage({
 			txt: 'changed port to [PORT: ' + port + ']',
@@ -374,7 +373,7 @@ var executeClientCommand = function(cmd) {
 			type: 'MSG'
 		});
 		return true;
-	} else if (cmd.match(/:set-host=\d*/)) /* e.g. :host=localhost */ {
+	} else if (cmd.match(/:set-host=\d*/)) {
 		var host = cmd.split("=")[1];
 		renderInternalMessage({
 			txt: 'changed host to [HOST: ' + host + ']',
@@ -392,7 +391,7 @@ var executeClientCommand = function(cmd) {
 		$package_scope.hide();
 		package_scope = null;
 		return true;
-	} else if (cmd.match(/:watch=/)) /* e.g. :new-watch=Date.now() */ {
+	} else if (cmd.match(/:watch=/)) {
 		var watch_expr = cmd.split("=")[1];
 		if (watch_expr) {
 			watchUpdater({

@@ -115,6 +115,10 @@
 		currentHost = HOST;
 		setServerState(SERVER_STATES.UP);
 
+		if (window._refreshApp) {
+			window._refreshApp();
+		}
+
 		last_crash_message = null;
 
 		//3 second timeout than assume that server doesn't use server-eval
@@ -188,27 +192,40 @@
 	};
 
 	var publishServerCrashErrorMessage = function() {
-		http_to_server.timeout = 2000;
-
-		http_to_server.onload = function() {
-			if (this.responseText.match(/^Your app is crashing/) && last_crash_message !== this.responseText) {
-				last_crash_message = this.responseText;
-
-				ServerEval._newResult({
-					result_doc: {
-						eval_time: Date.now(),
-						log: true,
-						err: true,
-						result: {
-							message: last_crash_message
-						}
-					}
-				});
+		var createMessage = function(message) {
+			if (message.match(/^Your app is crashing/) && last_crash_message !== message) {
+				last_crash_message = message;
+			} else {
+				return;
 			}
+
+			ServerEval._newResult({
+				result_doc: {
+					eval_time: Date.now(),
+					log: true,
+					err: true,
+					result: {
+						message: last_crash_message
+					}
+				}
+			});
 		};
 
-		http_to_server.open("post", "http://" + HOST + ":" + PORT + "/", true);
-		http_to_server.send();
+		if (window._getCrashMessage) {
+			//TODO ugly workaround because of CORS
+			window._getCrashMessage("http://" + HOST + ":" + PORT, function(msg) {
+				createMessage(msg);
+			});
+		} else {
+			http_to_server.timeout = 2000;
+
+			http_to_server.onload = function() {
+				createMessage(this.responseText);
+			};
+
+			http_to_server.open("post", "http://" + HOST + ":" + PORT + "/", true);
+			http_to_server.send();
+		}
 	};
 
 	//connect to the server or wait until a connection attempt is successful
