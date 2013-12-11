@@ -26,6 +26,10 @@
 	var watch_update_listeners = $.Callbacks();
 	var watch_removed_listeners = $.Callbacks();
 
+	var http_address = function() {
+		return "http://" + HOST + ":" + PORT;
+	};
+
 	ServerEval = {
 		removeWatch: function(id) {
 			ddp.call('serverEval/removeWatch', [id]);
@@ -115,8 +119,9 @@
 		currentHost = HOST;
 		setServerState(SERVER_STATES.UP);
 
-		if (window._refreshApp) {
-			window._refreshApp();
+		if (window.MeteorConsole_reloadApp &&
+			last_crash_message /*TODO use autoload package and only reload if client changed*/ ) {
+			window.MeteorConsole_reloadApp(http_address());
 		}
 
 		last_crash_message = null;
@@ -191,40 +196,46 @@
 		}, 1000);
 	};
 
-	var publishServerCrashErrorMessage = function() {
-		var createMessage = function(message) {
-			if (message.match(/^Your app is crashing/) && last_crash_message !== message) {
-				last_crash_message = message;
-			} else {
-				return;
-			}
+	var createCrashMessage = function(message) {
+		if (message.match(/^Your app is crashing/) && last_crash_message !== message) {
+			last_crash_message = message;
+		} else {
+			return;
+		}
 
-			ServerEval._newResult({
-				result_doc: {
-					eval_time: Date.now(),
-					log: true,
-					err: true,
-					result: {
-						message: last_crash_message
-					}
+		ServerEval._newResult({
+			result_doc: {
+				eval_time: Date.now(),
+				log: true,
+				err: true,
+				result: {
+					message: last_crash_message
 				}
-			});
-		};
+			}
+		});
+	};
 
-		if (window._getCrashMessage) {
-			//TODO ugly workaround because of CORS
-			window._getCrashMessage("http://" + HOST + ":" + PORT, function(msg) {
-				createMessage(msg);
+	var requestCrashPage = function() {
+		http_to_server.onload = function() {
+			createCrashMessage(this.responseText);
+		};
+		http_to_server.open("post", http_address() + "/", true);
+		http_to_server.timeout = 1000;
+		http_to_server.send();
+	};
+
+	var publishServerCrashErrorMessage = function() {
+		if (window.MeteorConsole_getCrashMessage) {
+			//workaround because of CORS and crash page
+			window.MeteorConsole_getCrashMessage(http_address(), function(msg) {
+				if (!msg) {
+					requestCrashPage();
+					return;
+				}
+				createCrashMessage(msg);
 			});
 		} else {
-			http_to_server.timeout = 2000;
-
-			http_to_server.onload = function() {
-				createMessage(this.responseText);
-			};
-
-			http_to_server.open("post", "http://" + HOST + ":" + PORT + "/", true);
-			http_to_server.send();
+			requestCrashPage();
 		}
 	};
 
