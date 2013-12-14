@@ -26,8 +26,13 @@
 	var watch_update_listeners = $.Callbacks();
 	var watch_removed_listeners = $.Callbacks();
 
-	var http_address = function() {
-		return "http://" + HOST + ":" + PORT;
+	var origin;
+	var chrome_ext_detected = !! window.location.origin.match(/^chrome-extension:\/\//);
+	var chrome_extension_loaded = false;
+
+	var setOrigin = function() {
+		origin = HOST + ":" + PORT;
+		setupDDP();
 	};
 
 	ServerEval = {
@@ -57,7 +62,7 @@
 				restart = true;
 			}
 			if (restart) {
-				ddp.close();
+				setOrigin();
 			}
 		},
 		currentPort: function() {
@@ -119,11 +124,6 @@
 		currentHost = HOST;
 		setServerState(SERVER_STATES.UP);
 
-		if (window.MeteorConsole_reloadApp &&
-			last_crash_message /*TODO use autoload package and only reload if client changed*/ ) {
-			window.MeteorConsole_reloadApp(http_address());
-		}
-
 		last_crash_message = null;
 
 		//3 second timeout than assume that server doesn't use server-eval
@@ -184,16 +184,17 @@
 
 		// poll server and try reinit when server down
 		var nIntervId = setInterval(function() {
-			ddp.send({
-				"ping": "h"
-			});
 			if (ddp.sock.readyState === 3 /* CLOSED */ ) {
 				clearInterval(nIntervId);
 				setServerState(SERVER_STATES.DOWN);
 				publishServerCrashErrorMessage();
-				initCommunication();
+				setupDDP();
+			} else {
+				ddp.send({
+					"ping": "h"
+				});
 			}
-		}, 1000);
+		}, 300);
 	};
 
 	var createCrashMessage = function(message) {
@@ -219,7 +220,7 @@
 		http_to_server.onload = function() {
 			createCrashMessage(this.responseText);
 		};
-		http_to_server.open("post", http_address() + "/", true);
+		http_to_server.open("post", 'http://' + origin + "/", true);
 		http_to_server.timeout = 1000;
 		http_to_server.send();
 	};
@@ -227,7 +228,7 @@
 	var publishServerCrashErrorMessage = function() {
 		if (window.MeteorConsole_getCrashMessage) {
 			//workaround because of CORS and crash page
-			window.MeteorConsole_getCrashMessage(http_address(), function(msg) {
+			window.MeteorConsole_getCrashMessage('http://' + origin, function(msg) {
 				if (!msg) {
 					requestCrashPage();
 					return;
@@ -240,11 +241,14 @@
 	};
 
 	//connect to the server or wait until a connection attempt is successful
-	var initCommunication = function() {
-		ddp = new MeteorDdp("ws://" + HOST + ":" + PORT + "/websocket");
+	var setupDDP = function() {
+		if (ddp) {
+			ddp.close();
+		}
+		ddp = new MeteorDdp("ws://" + origin + "/websocket");
 		ddp.connect().then(function() {
 			setupDataTransfer();
-		}, /* no connection, try again in 2s */ function() {
+		}, /* no connection, try again */ function() {
 			currentPort = PORT;
 			setTimeout(function() {
 				setServerState(SERVER_STATES.DOWN);
@@ -252,6 +256,30 @@
 				initCommunication();
 			}, 1000);
 		});
+	};
+
+	var initCommunication = function() {
+		if (window.MeteorConsole_getOrigin && chrome_ext_detected && !chrome_extension_loaded) {
+			chrome_extension_loaded = true;
+			window.MeteorConsole_getOrigin(function(origin) {
+				var origin_match = [];
+				if (origin) {
+					origin_match = origin.match(/^http:\/\/(\w*):(\d*)/);
+				}
+				if (origin_match.length == 3) {
+					HOST = origin_match[1];
+					PORT = origin_match[2];
+				}
+				setOrigin();
+			});
+		} else if (!chrome_ext_detected) {
+			setOrigin();
+		} else {
+			//startup delay, to wait until chrome-extension loaded
+			setTimeout(function() {
+				initCommunication();
+			}, 500);
+		}
 	};
 
 })();

@@ -6,11 +6,17 @@ chrome.devtools.panels.create(
     panel.onShown.addListener(function(win) {
       win.document.getElementById("run_eval").focus();
 
+      win.MeteorConsole_getOrigin = function(callback) {
+        chrome.devtools.inspectedWindow.eval('document.location.origin', function(result, isException) {
+          callback(result);
+        });
+      };
+
       var _checkOrigin = function(origin, callback) {
         chrome.devtools.inspectedWindow.eval('document.location.origin', function(result, isException) {
           if (!isException && result === origin && callback) {
             callback(true);
-          } else {
+          } else if (callback) {
             callback();
           }
         });
@@ -22,10 +28,7 @@ chrome.devtools.panels.create(
         clearInterval(checkCrashText);
 
         _checkOrigin(origin, function(ok) {
-          if (!ok) {
-            callback();
-            return;
-          }
+          if (!ok) return callback();
 
           chrome.devtools.inspectedWindow.eval('var xhr = new XMLHttpRequest();' +
             'xhr.onload = function() {' +
@@ -45,14 +48,6 @@ chrome.devtools.panels.create(
             }
           });
         }, 100);
-      };
-
-      win.MeteorConsole_reloadApp = function(origin) {
-        _checkOrigin(origin, function(ok) {
-          if (!ok) return;
-
-          chrome.devtools.inspectedWindow.eval('window.location.reload();');
-        });
       };
     });
   }
