@@ -178,8 +178,11 @@
 				});
 			}
 		});
+
 		ddp.subscribe("server-eval-results").then(function() {
 			result_sub_ready = true;
+		}, function() {
+			result_sub_ready = false;
 		});
 
 		// poll server and try reinit when server down
@@ -259,7 +262,7 @@
 	};
 
 	var initCommunication = function() {
-		if (window.MeteorConsole_getOrigin && chrome_ext_detected && !chrome_extension_loaded) {
+		if (chrome_ext_detected && window.MeteorConsole_getOrigin && !chrome_extension_loaded) {
 			chrome_extension_loaded = true;
 			window.MeteorConsole_getOrigin(function(origin) {
 				var origin_match = [];
