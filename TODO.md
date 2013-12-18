@@ -2,6 +2,12 @@
 
 for both, meteor-server-console and [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval))
 
+
+test-packages local to project and link to test site 
+limit mongodb doc size and log message if eval size to much
+
+
+
 ### long term:
 
 - port to meteor ui

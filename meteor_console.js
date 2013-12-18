@@ -86,10 +86,10 @@ var createTemplateInstance = function(name, id) {
 	return $tmpl_instance;
 };
 
-var createTree = function($content, result) {
+var createTree = function($content, value) {
 	$content.find('.content').addClass('eval_tree');
 	return $content.find('.eval_tree').tree({
-		data: objectToTreeData(result, true),
+		data: objectToTreeData(value.result, true, value.size),
 		onCreateLi: function(node, $li) {
 			//use text as html because the treedata includes html
 			var $title = $li.find('.jqtree-title');
@@ -100,7 +100,7 @@ var createTree = function($content, result) {
 
 var createReturnValue = function($content, value, cb) {
 	if (_.isObject(value.result)) {
-		var tree = createTree($content, value.result);
+		var tree = createTree($content, value);
 		if (cb) {
 			tree.bind('tree.close', cb);
 		}

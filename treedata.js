@@ -82,9 +82,25 @@ var _createSubtree = function(label, children) {
 	};
 };
 
+var formatByteSize = function(bytes) {
+	bytes = parseInt(bytes, 10);
+	var bytes_formatted;
+	if (isNaN(bytes) || bytes === 0) {
+		return '';
+	} else if (bytes < 1024) {
+		bytes_formatted = bytes + " byte";
+	} else if (bytes < 1048576) {
+		bytes_formatted = (bytes / 1024).toFixed(2) + " kb";
+	} else {
+		floatNum = bytes / 1048576;
+		bytes_formatted = floatNum.toFixed(2) + " mb";
+	}
+	return "[" + bytes_formatted + " est.]";
+};
+
 //converts all kind of result objects in jqtree format
 //recursive function adding subtrees, subtree subtrees, ...
-var objectToTreeData = function(obj, top_level) {
+var objectToTreeData = function(obj, top_level, size) {
 	if (!_.isObject(obj)) return [];
 
 	var tree_data = [];
@@ -114,7 +130,7 @@ var objectToTreeData = function(obj, top_level) {
 		//top level label is just the _typeHtml and properties are direct children
 		if (top_level) {
 			if (tree_data.length === 0) {
-				tree_data.push(_createSubtree(_typeHtml(obj), []));
+				tree_data.push(_createSubtree(_typeHtml(obj) + formatByteSize(size), []));
 			}
 			tree_data[0].children.push(sub_tree);
 		} else {
