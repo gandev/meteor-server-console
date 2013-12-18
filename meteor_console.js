@@ -196,9 +196,16 @@ var renderLog = function(doc) {
 	});
 	lines = lines.slice(firstNotEmptyLine, lastNotEmptyLine + 1);
 
-	if (!doc.helper) {
-		$content.addClass('without_request');
-	}
+	//enables auto removing of log entries not produced by helper functions
+	var toggleAutoRemoveLog = function() {
+		if (!doc.helper && !$content.hasClass('auto_remove')) {
+			$content.addClass('auto_remove');
+		} else if ($content.hasClass('auto_remove')) {
+			$content.removeClass('auto_remove');
+		}
+	};
+
+	toggleAutoRemoveLog();
 
 	if (lines.length > 0) {
 		$content.find('.log_entry').append(lines[0]);
@@ -212,14 +219,15 @@ var renderLog = function(doc) {
 					$additional_lines.css('display', 'none');
 					$(this).find('.glyphicon').removeClass('glyphicon-minus');
 					$(this).find('.glyphicon').addClass('glyphicon-plus');
-					//focusInput();
 				} else {
 					$additional_lines.css('display', 'block');
 					$(this).find('.glyphicon').removeClass('glyphicon-plus');
 					$(this).find('.glyphicon').addClass('glyphicon-minus');
 				}
+				toggleAutoRemoveLog(); //so open logs will not be removed
 			});
 
+			//open last log entry (only helper logs) but only if initial data load ready
 			if (doc.helper && ServerEval._isResultSubReady()) {
 				$additional_lines.css('display', 'block');
 				$content.find('.additional_lines .glyphicon').removeClass('glyphicon-plus');
@@ -241,11 +249,16 @@ var renderLog = function(doc) {
 		if (doc.result.line) {
 			$content.find('.scope').append(' [line: ' + doc.result.line + ']');
 		}
+	} else if (doc.eval_time) {
+		var eval_time = doc.eval_time + '';
+		eval_time = eval_time.substring(eval_time.length - 5);
+
+		$content.find('.scope').html(eval_time);
 	}
 
 	$("#output").append($content);
 
-	removeOldResults(MAX_LOG_ENTRIES, 'log.without_request');
+	removeOldResults(MAX_LOG_ENTRIES, 'log.auto_remove');
 
 	positioning(true);
 };
@@ -422,7 +435,7 @@ var executeClientCommand = function(cmd) {
 		var max = parseInt(cmd.split("=")[1], 10);
 		if (!isNaN(max)) {
 			MAX_LOG_ENTRIES = max;
-			removeOldResults(MAX_LOG_ENTRIES, 'log.without_request');
+			removeOldResults(MAX_LOG_ENTRIES, 'log.auto_remove');
 		}
 		return true;
 	}
