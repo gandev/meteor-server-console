@@ -275,7 +275,7 @@
 				}
 				setOrigin();
 			});
-		} else if (!chrome_ext_detected) {
+		} else if (!chrome_ext_detected || chrome_ext_detected && chrome_extension_loaded) {
 			setOrigin();
 		} else {
 			//startup delay, to wait until chrome-extension loaded
