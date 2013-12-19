@@ -261,7 +261,11 @@ var renderLog = function(doc) {
 
 	removeOldResults(MAX_LOG_ENTRIES, 'log.auto_remove');
 
-	positioning(true);
+	//only scroll if log expected while helper,
+	//otherwise scrolling not possible if frequently added logs
+	if (doc.helper) {
+		positioning(true);
+	}
 };
 
 //inserts a new internal message into the dom
