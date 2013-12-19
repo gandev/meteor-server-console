@@ -88,14 +88,14 @@ var formatByteSize = function(bytes) {
 	if (isNaN(bytes) || bytes === 0) {
 		return '';
 	} else if (bytes < 1024) {
-		bytes_formatted = bytes + " byte";
+		bytes_formatted = bytes + "byte";
 	} else if (bytes < 1048576) {
-		bytes_formatted = (bytes / 1024).toFixed(2) + " kb";
+		bytes_formatted = (bytes / 1024).toFixed(2) + "kb";
 	} else {
 		floatNum = bytes / 1048576;
-		bytes_formatted = floatNum.toFixed(2) + " mb";
+		bytes_formatted = floatNum.toFixed(2) + "mb";
 	}
-	return "[" + bytes_formatted + " est.]";
+	return "{" + bytes_formatted + " est.}";
 };
 
 //converts all kind of result objects in jqtree format

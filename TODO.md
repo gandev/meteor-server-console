@@ -29,6 +29,7 @@ limit mongodb doc size and log message if eval size to much
 - persist max-log-entries in metadata on server
 - autocomplete shortcut
 - styling on different platforms
+- server switch results in disconnect and immediatly reconnect (maybe only if no successful connection before!?)
 
 ### maybe..
 

@@ -10,6 +10,11 @@ ul.jqtree-tree .jqtree-toggler {
   top: 0.25em;
 }
 
+.label {
+  padding: 3px 1.5px 1.5px 1.5px;
+  font-size: 80%;
+}
+
 .preserve-whitespace {
   white-space: pre;
 }
@@ -46,6 +51,10 @@ ul.jqtree-tree .jqtree-toggler {
   border-bottom: rgb(180, 180, 180);
   border-bottom-style: solid;
   border-bottom-width: thin;
+}
+
+.result.log .additional_lines {
+  cursor: pointer;
 }
 
 .log_entry {
@@ -102,7 +111,7 @@ ul.jqtree-tree .jqtree-toggler {
 
 .result .scope {
   right: 2px;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .table tbody > tr > td {
@@ -120,10 +129,6 @@ ul.jqtree-tree .jqtree-toggler {
 
 .current_scope {
   display: none;
-}
-
-.internal_msg {
-  margin-bottom: 3px;
 }
 
 .error_location {

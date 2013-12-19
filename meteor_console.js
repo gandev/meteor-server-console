@@ -217,12 +217,12 @@ var renderLog = function(doc) {
 			$content.find('.additional_lines').on('click', function() {
 				if ($additional_lines.css('display') !== 'none') {
 					$additional_lines.css('display', 'none');
-					$(this).find('.glyphicon').removeClass('glyphicon-minus');
-					$(this).find('.glyphicon').addClass('glyphicon-plus');
+					$(this).removeClass('glyphicon-minus');
+					$(this).addClass('glyphicon-plus');
 				} else {
 					$additional_lines.css('display', 'block');
-					$(this).find('.glyphicon').removeClass('glyphicon-plus');
-					$(this).find('.glyphicon').addClass('glyphicon-minus');
+					$(this).removeClass('glyphicon-plus');
+					$(this).addClass('glyphicon-minus');
 				}
 				toggleAutoRemoveLog(); //so open logs will not be removed
 			});
@@ -230,13 +230,12 @@ var renderLog = function(doc) {
 			//open last log entry (only helper logs) but only if initial data load ready
 			if (doc.helper && ServerEval._isResultSubReady()) {
 				$additional_lines.css('display', 'block');
-				$content.find('.additional_lines .glyphicon').removeClass('glyphicon-plus');
-				$content.find('.additional_lines .glyphicon').addClass('glyphicon-minus');
+				$content.find('.additional_lines').removeClass('glyphicon-plus');
+				$content.find('.additional_lines').addClass('glyphicon-minus');
 			} else {
 				$additional_lines.css('display', 'none');
 			}
 		} else {
-			$content.find('.log_level').css('padding-bottom', '2px'); //TODO
 			$content.find('.additional_lines').css('display', 'none');
 		}
 	}
@@ -251,7 +250,9 @@ var renderLog = function(doc) {
 		}
 	} else if (doc.eval_time) {
 		var eval_time = doc.eval_time + '';
-		eval_time = eval_time.substring(eval_time.length - 5);
+		eval_time = eval_time.substring(0, eval_time.length - 5) +
+			'|' +
+			eval_time.substring(eval_time.length - 5);
 
 		$content.find('.scope').html(eval_time);
 	}
