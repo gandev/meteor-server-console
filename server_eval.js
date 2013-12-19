@@ -269,7 +269,7 @@
 				if (origin) {
 					origin_match = origin.match(/^http:\/\/(\w*):(\d*)/);
 				}
-				if (origin_match.length == 3) {
+				if (origin_match && origin_match.length == 3) {
 					HOST = origin_match[1];
 					PORT = origin_match[2];
 				}
