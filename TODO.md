@@ -7,7 +7,6 @@ test-packages local to project and link to test site
 limit mongodb doc size and log message if eval size to much
 
 
-
 ### long term:
 
 - port to meteor ui
@@ -22,16 +21,19 @@ limit mongodb doc size and log message if eval size to much
 - syntax highlighting in input + allow multiple lines
 - watches with update interval
 
-- abee scaffolding + some kind of test runner support
+- abee scaffolding helpers
+- tinytest support (run tests for specific packages and link to them)
+
+- make object tree more interactive (e.g. jump to circulars, evaluate/show prototype)
 
 ### current bugs/limitations:
 
 - persist max-log-entries in metadata on server
-- autocomplete shortcut
+- autocomplete shortcut (CTRL + ALT + SPACE on Windows and Firefox uses CTRL + SPACE itself) (prototype?)
 - styling on different platforms
-- server switch results in disconnect and immediatly reconnect (maybe only if no successful connection before!?)
+
+- object size not very exact and useful at all/ where to go, need something to decide if objects to big?
 
 ### maybe..
 
-- basic console commands like cd, ls, touch, mkdir, ...
 - insert package scope eval per command

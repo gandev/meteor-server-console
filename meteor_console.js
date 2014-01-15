@@ -596,7 +596,8 @@ $(document).ready(function() {
 			(evt.keyCode > 47 && evt.keyCode < 91 ||
 				evt.keyCode === 190 ||
 				evt.keyCode === 186 ||
-				evt.keyCode === 8 /*BACKSPACE*/ )) {
+				evt.keyCode === 8 /*BACKSPACE*/ ||
+        evt.keyCode === 38 /*UP*/)) {
 			focusInput();
 		}
 	});
