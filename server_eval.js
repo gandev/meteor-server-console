@@ -186,9 +186,9 @@
 		});
 
 		// poll server and try reinit when server down
-		var nIntervId = setInterval(function() {
-			if (ddp.sock.readyState === 3 /* CLOSED */ ) {
-				clearInterval(nIntervId);
+		var checkConnectionInterval = setInterval(function() {
+			if (ddp.sock.readyState !== 1 /* 1 = CONNECTED, 3 = CLOSED */ ) {
+				clearInterval(checkConnectionInterval);
 				setServerState(SERVER_STATES.DOWN);
 				publishServerCrashErrorMessage();
 				setupDDP();
@@ -243,17 +243,22 @@
 		}
 	};
 
+	var reconnectTimeout;
+
 	//connect to the server or wait until a connection attempt is successful
 	var setupDDP = function() {
 		if (ddp) {
+			clearTimeout(reconnectTimeout);
 			ddp.close();
 		}
 		ddp = new MeteorDdp("ws://" + origin + "/websocket");
+
 		ddp.connect().then(function() {
+			clearTimeout(reconnectTimeout);
 			setupDataTransfer();
 		}, /* no connection, try again */ function() {
 			currentPort = PORT;
-			setTimeout(function() {
+			reconnectTimeout = setTimeout(function() {
 				setServerState(SERVER_STATES.DOWN);
 				publishServerCrashErrorMessage();
 				initCommunication();
@@ -267,7 +272,7 @@
 			window.MeteorConsole_getOrigin(function(origin) {
 				var origin_match = [];
 				if (origin) {
-					origin_match = origin.match(/^http:\/\/(\w*):(\d*)/);
+					origin_match = origin.match(/^http:\/\/([\w\.-]*):(\d*)/);
 				}
 				if (origin_match && origin_match.length == 3) {
 					HOST = origin_match[1];
