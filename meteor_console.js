@@ -214,26 +214,28 @@ var renderLog = function(doc) {
 		if (lines.length > 1) {
 			$additional_lines.append(lines.slice(1).join('\n'));
 
+			var showLogLines = function(icon) {
+				$additional_lines.toggleClass('show_additional_lines', true);
+				$(icon).removeClass('glyphicon-plus');
+				$(icon).addClass('glyphicon-minus');
+			};
+
 			$content.find('.additional_lines').on('click', function() {
-				if ($additional_lines.css('display') !== 'none') {
-					$additional_lines.css('display', 'none');
+				if ($additional_lines.hasClass('show_additional_lines')) {
+					$additional_lines.toggleClass('show_additional_lines', false);
 					$(this).removeClass('glyphicon-minus');
 					$(this).addClass('glyphicon-plus');
 				} else {
-					$additional_lines.css('display', 'block');
-					$(this).removeClass('glyphicon-plus');
-					$(this).addClass('glyphicon-minus');
+					showLogLines(this);
 				}
 				toggleAutoRemoveLog(); //so open logs will not be removed
 			});
 
 			//open last log entry (only helper logs) but only if initial data load ready
-			if (doc.helper && ServerEval._isResultSubReady()) {
-				$additional_lines.css('display', 'block');
-				$content.find('.additional_lines').removeClass('glyphicon-plus');
-				$content.find('.additional_lines').addClass('glyphicon-minus');
+			if (doc.crash || doc.helper && ServerEval._isResultSubReady()) {
+				showLogLines($content.find('.additional_lines'));
 			} else {
-				$additional_lines.css('display', 'none');
+				$additional_lines.toggleClass('show_additional_lines', false);
 			}
 		} else {
 			$content.find('.additional_lines').css('display', 'none');
@@ -262,7 +264,7 @@ var renderLog = function(doc) {
 	removeOldResults(MAX_LOG_ENTRIES, 'log.auto_remove');
 
 	//only scroll if log expected while helper,
-	//otherwise scrolling not possible if frequently added logs
+	//otherwise scrolling not possible if frequently added logs!
 	if (doc.helper) {
 		positioning(true);
 	}
@@ -443,6 +445,11 @@ var executeClientCommand = function(cmd) {
 			removeOldResults(MAX_LOG_ENTRIES, 'log.auto_remove');
 		}
 		return true;
+	} else if (cmd.match(/:collapse-logs/)) {
+		$('.show_additional_lines').removeClass('show_additional_lines');
+		$('.additional_lines').removeClass('glyphicon-minus');
+		$('.additional_lines').addClass('glyphicon-plus');
+		return true;
 	}
 };
 
@@ -455,7 +462,7 @@ var executeServerCommand = function(cmd) {
 		var split_cmd = cmd.split(/\s+/g);
 		var command = split_cmd[0];
 		var args = split_cmd.slice(1);
-		ServerEval.executeHelper(command, args);
+		ServerEval.execute(command, package_scope, args);
 		return true;
 	}
 };
@@ -474,7 +481,7 @@ var consoleHandler = function(evt) {
 	var eval_str = $("#run_eval").val();
 	if (evt.keyCode == 13) /* enter */ {
 		if (!internalCommand(eval_str)) {
-			ServerEval.eval(eval_str, {
+			ServerEval._eval(eval_str, {
 				'package': package_scope
 			});
 		}
@@ -515,7 +522,7 @@ var consoleHandler = function(evt) {
 			eval_str = eval_str.substring(0, dotIdx);
 		}
 
-		ServerEval.eval(eval_str, {
+		ServerEval._eval(eval_str, {
 			'package': package_scope,
 			autocomplete: true,
 			search: search && search.length > 1 ? search.substr(1) : undefined
@@ -542,7 +549,9 @@ var setupAutocomplete = function(metadata) {
 		":watch-view60",
 		":max-log-entries=10",
 		":reload",
-		":reset-scope"
+		":scope=",
+		":reset-scope",
+		":collapse-logs"
 	];
 	clientCommands = clientCommands.concat(packageTags);
 
@@ -597,7 +606,7 @@ $(document).ready(function() {
 				evt.keyCode === 190 ||
 				evt.keyCode === 186 ||
 				evt.keyCode === 8 /*BACKSPACE*/ ||
-        evt.keyCode === 38 /*UP*/)) {
+				evt.keyCode === 38 /*UP*/ )) {
 			focusInput();
 		}
 	});

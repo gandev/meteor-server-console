@@ -39,11 +39,11 @@
 		removeWatch: function(id) {
 			ddp.call('serverEval/removeWatch', [id]);
 		},
-		eval: function(expr, options) {
+		_eval: function(expr, options) {
 			ddp.call('serverEval/eval', [expr, options]);
 		},
-		executeHelper: function(command, args) {
-			ddp.call('serverEval/executeHelper', [command, args]);
+		execute: function(command, scope, args) {
+			ddp.call('serverEval/execute', [command, scope, args]);
 		},
 		clear: function() {
 			ddp.call('serverEval/clear');
@@ -212,6 +212,7 @@
 				eval_time: Date.now(),
 				log: true,
 				err: true,
+				crash: true,
 				result: {
 					message: last_crash_message
 				}

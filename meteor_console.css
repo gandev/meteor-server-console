@@ -127,8 +127,12 @@ ul.jqtree-tree .jqtree-toggler {
   right: 2px;
 }
 
-.current_scope {
+.current_scope, .log_additional_lines {
   display: none;
+}
+
+.show_additional_lines {
+  display: block;
 }
 
 .error_location {
