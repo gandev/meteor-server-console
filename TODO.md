@@ -34,6 +34,8 @@ limit mongodb doc size and log message if eval size to much
 
 - object size not very exact and useful at all/ where to go, need something to decide if objects to big?
 
+- no control over execute if child_process waits for input
+
 ### maybe..
 
 - insert package scope eval per command
