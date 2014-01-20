@@ -95,7 +95,7 @@ var formatByteSize = function(bytes) {
 		floatNum = bytes / 1048576;
 		bytes_formatted = floatNum.toFixed(2) + "mb";
 	}
-	return "{" + bytes_formatted + " est.}";
+	return '<span style="font-size: 0.6em;">' + bytes_formatted + ' est.</span>';
 };
 
 //converts all kind of result objects in jqtree format
