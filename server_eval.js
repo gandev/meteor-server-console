@@ -8,7 +8,6 @@
 	var currentHost;
 	var result_sub_ready = false;
 	//local copy of server-eval metadata
-	var serverEvalPackages = [];
 	var serverEvalVersion;
 	//constants for internal messages
 	var SERVER_STATES = {
@@ -138,7 +137,6 @@
 		ddp.watch("server-eval-metadata", function(doc, msg) {
 			if (msg === "added" || msg === "changed") {
 				clearTimeout(metaDataTimeout);
-				serverEvalPackages = doc.packages;
 				serverEvalVersion = doc.version;
 				if (serverEvalVersion !== VERSION) {
 					ServerEval._serverStateChanged({
@@ -146,10 +144,7 @@
 						state_type: "ERROR"
 					});
 				}
-				ServerEval._metadataChanged({
-					supported_packages: doc.supported_packages,
-					helpers: doc.helpers
-				});
+				ServerEval._metadataChanged(doc);
 			}
 		});
 		ddp.subscribe("server-eval-metadata");

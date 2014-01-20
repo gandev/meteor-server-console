@@ -337,7 +337,7 @@ var clearOutput = function() {
 
 var watchUpdater = function(watch) {
 	return function() {
-		ServerEval.eval(watch.expr, {
+		ServerEval._eval(watch.expr, {
 			'package': watch.watch_scope,
 			watch: true
 		});
@@ -530,7 +530,7 @@ var consoleHandler = function(evt) {
 	}
 };
 
-var setupAutocomplete = function(metadata) {
+var setupCommandAutocomplete = function(metadata) {
 	metadata = metadata || {};
 	//use server-eval metadata to show supported packages
 	var packageTags = _.map(metadata.supported_packages || [], function(pkg) {
@@ -576,7 +576,13 @@ var setupAutocomplete = function(metadata) {
 			var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
 			var tags = [];
 			if (request.term.match(/^:/)) {
-				tags = clientCommands;
+				if (request.term.match(/^:scope/)) {
+					tags = _.uniq(clientCommands.concat(_.map(metadata.packages || [], function(pkg) {
+						return ":scope=" + pkg;
+					})));
+				} else {
+					tags = clientCommands;
+				}
 			} else if (request.term.match(/^\./)) {
 				tags = serverCommands;
 			}
@@ -587,6 +593,7 @@ var setupAutocomplete = function(metadata) {
 		},
 		open: function(event, ui) {
 			$("#run_eval").unbind('keyup', consoleHandler);
+			$('#run_eval').autocomplete("widget").width('auto');
 		},
 		close: function(event, ui) {
 			//neccessary because selection with enter triggers run_eval keyup
@@ -606,14 +613,15 @@ $(document).ready(function() {
 				evt.keyCode === 190 ||
 				evt.keyCode === 186 ||
 				evt.keyCode === 8 /*BACKSPACE*/ ||
-				evt.keyCode === 38 /*UP*/ )) {
+				evt.keyCode === 38 /*UP*/ ||
+				evt.keyCode === 40 /*DOWN*/ )) {
 			focusInput();
 		}
 	});
 
 	//wire and initialize ui
 	$("#run_eval").bind('keyup', consoleHandler);
-	setupAutocomplete();
+	setupCommandAutocomplete();
 
 	var scrollTimeout;
 	$(window).bind("scroll", function() {
@@ -650,8 +658,8 @@ $(document).ready(function() {
 		}
 	});
 
-	ServerEval.listenForMetadata(function(evt) {
-		setupAutocomplete(evt);
+	ServerEval.listenForMetadata(function(metadata) {
+		setupCommandAutocomplete(metadata);
 	});
 
 	ServerEval.listenForWatchUpdates(function(evt) {
