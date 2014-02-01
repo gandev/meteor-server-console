@@ -66,6 +66,15 @@ var setWidth = function(zero, cb) {
 	}, cb);
 };
 
+var evalExpression = function(expr, options) {
+	options = options || {};
+	_.extend(options, {
+		'package': package_scope,
+	});
+
+	ServerEval._eval(expr, options);
+};
+
 //add expression to history or move it to the end + reset cursor/cursor state
 var newExpression = function(expr) {
 	expressionHistory = _.filter(expressionHistory, function(e) {
@@ -89,7 +98,7 @@ var createTemplateInstance = function(name, id) {
 var createTree = function($content, value) {
 	$content.find('.content').addClass('eval_tree');
 	return $content.find('.eval_tree').tree({
-		data: objectToTreeData(value.result, true, value.size),
+		data: objectToTreeData(value, true),
 		onCreateLi: function(node, $li) {
 			//use text as html because the treedata includes html
 			var $title = $li.find('.jqtree-title');
@@ -101,6 +110,15 @@ var createTree = function($content, value) {
 var createReturnValue = function($content, value, cb) {
 	if (_.isObject(value.result)) {
 		var tree = createTree($content, value);
+
+		tree.find('.ignore_size').on('click', function() {
+			var id = this.id;
+			if (id === value._id) {
+				evalExpression(value.expr, {
+					ignore_size: true
+				});
+			}
+		});
 		if (cb) {
 			tree.bind('tree.close', cb);
 		}
@@ -337,8 +355,7 @@ var clearOutput = function() {
 
 var watchUpdater = function(watch) {
 	return function() {
-		ServerEval._eval(watch.expr, {
-			'package': watch.watch_scope,
+		evalExpression(watch.expr, {
 			watch: true
 		});
 	};
@@ -481,9 +498,7 @@ var consoleHandler = function(evt) {
 	var eval_str = $("#run_eval").val();
 	if (evt.keyCode == 13) /* enter */ {
 		if (!internalCommand(eval_str)) {
-			ServerEval._eval(eval_str, {
-				'package': package_scope
-			});
+			evalExpression(eval_str);
 		}
 		$("#run_eval").val("");
 	} else if (evt.keyCode == 38) /*up*/ {
@@ -522,8 +537,7 @@ var consoleHandler = function(evt) {
 			eval_str = eval_str.substring(0, dotIdx);
 		}
 
-		ServerEval._eval(eval_str, {
-			'package': package_scope,
+		evalExpression(eval_str, {
 			autocomplete: true,
 			search: search && search.length > 1 ? search.substr(1) : undefined
 		});

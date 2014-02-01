@@ -100,14 +100,19 @@ var formatByteSize = function(bytes) {
 
 //converts all kind of result objects in jqtree format
 //recursive function adding subtrees, subtree subtrees, ...
-var objectToTreeData = function(obj, top_level, size) {
+var objectToTreeData = function(obj_raw, top_level) {
+	var obj = obj_raw._id && obj_raw.result ? obj_raw.result /* special object from server-eval */ : obj_raw;
+
 	if (!_.isObject(obj)) return [];
 
 	var tree_data = [];
-	var isError = obj.____TYPE____ && obj.____TYPE____ === "[Error]";
-	var isCircular = obj.____TYPE____ && obj.____TYPE____ === "[Circular]";
+	var isError = obj.____TYPE____ === "[Error]";
+	var isCircular = obj.____TYPE____ === "[Circular]";
 
 	if (isError) {
+		if (obj.size_error) {
+			obj.err = obj.err.replace(/IGNORE/, '<span class="label label-default ignore_size" id="' + obj_raw._id + '">ignore</span>');
+		}
 		return _errorToTreeData(obj);
 	}
 
@@ -130,7 +135,7 @@ var objectToTreeData = function(obj, top_level, size) {
 		//top level label is just the _typeHtml and properties are direct children
 		if (top_level) {
 			if (tree_data.length === 0) {
-				tree_data.push(_createSubtree(_typeHtml(obj) + formatByteSize(size), []));
+				tree_data.push(_createSubtree(_typeHtml(obj) + formatByteSize(obj_raw.size), []));
 			}
 			tree_data[0].children.push(sub_tree);
 		} else {
