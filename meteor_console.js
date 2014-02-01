@@ -269,12 +269,8 @@ var renderLog = function(doc) {
 			$content.find('.scope').append(' [line: ' + doc.result.line + ']');
 		}
 	} else if (doc.eval_time) {
-		var eval_time = doc.eval_time + '';
-		eval_time = eval_time.substring(0, eval_time.length - 5) +
-			'|' +
-			eval_time.substring(eval_time.length - 5);
-
-		$content.find('.scope').html(eval_time);
+		var formatted_time = moment(doc.eval_time).format('a h:mm:ss.SSS');
+		$content.find('.scope').html(formatted_time);
 	}
 
 	$("#output").append($content);
