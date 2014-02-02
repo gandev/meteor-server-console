@@ -17,8 +17,13 @@ var _typeHtml = function(value) {
 		} else if (type === "[Error]") {
 			type += "[" + value.err + "]";
 			type_style += 'red;"';
-		} else if (type == "[Function]") {
+		} else if (type === "[Function]") {
 			type_style += 'blue;"';
+		} else if (type === '[Tinytest]') {
+			type += '[<a href="http://' +
+				ServerEval.currentHost() + ':' + value.port + '" ' +
+				'target="_blank">open...</a>]';
+			type_style += 'brown;"';
 		} else {
 			type_style += 'gray;"';
 		}
