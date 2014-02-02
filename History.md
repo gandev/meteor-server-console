@@ -1,9 +1,10 @@
 ## v0.5 - helpers and logging
 
-- execute helper functions by executing .helper in console (supported helpers autocomplete)
-- git command wrapper implemented with helper functions
-- optionally showing server log entries
-- minor usability improvements
+- execute helper functions by executing .helper in console
+- .git and .test-packages helpers
+- execute helper as command on console if not supported
+- server log
+- various usability improvements
 
 ## v0.4 - watch it
 
