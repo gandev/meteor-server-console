@@ -2,16 +2,15 @@
 
 for both, meteor-server-console and [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval))
 
+### current bugs/limitations:
 
-
-limit mongodb doc size and log message if eval size to much
-
-line wrap
-
-### long term:
-
-- port to meteor ui
-- create new smartpackage server-eval-helpers
+- persist max-log-entries in metadata on server
+- autocomplete shortcut (CTRL + ALT + SPACE on Windows and Firefox uses CTRL + SPACE itself)
+- styling on different platforms, styling at all
+- object size not very exact!? but i need something to decide if objects to big
+- no control over execute if child_process waits for input!?
+- if watch result bigger than mongo doc size error
+- line wrap
 
 ### mid term:
 
@@ -20,24 +19,13 @@ line wrap
 - show types on autocomplete
 - syntax highlighting in input + allow multiple lines
 - watches with update interval
-
 - scaffolding (e.g. abee, boilerplate (devshop 11)!?) helpers
-- tinytest support (run tests for specific packages and link to them)
-
 - make object tree more interactive (e.g. jump to circulars, evaluate/show prototype)
-- test-packages local to project and link to test site 
 
-### current bugs/limitations:
+### long term:
 
-- persist max-log-entries in metadata on server
-- autocomplete shortcut (CTRL + ALT + SPACE on Windows and Firefox uses CTRL + SPACE itself) (prototype?)
-- styling on different platforms
-- object size not very exact and useful at all/ where to go, need something to decide if objects to big?
-
-- no control over execute if child_process waits for input
-
-- evaluate expression with ignore size
-
+- port to meteor ui
+- create new smartpackage server-eval-helpers
 
 ### maybe..
 
