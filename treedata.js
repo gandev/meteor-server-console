@@ -22,7 +22,7 @@ var _typeHtml = function(value) {
 		} else if (type === '[Tinytest]') {
 			type += '[<a href="http://' +
 				ServerEval.currentHost() + ':' + value.port + '" ' +
-				'target="_blank">open...</a>]';
+				'target="_blank">open..</a>]';
 			type_style += 'brown;"';
 		} else {
 			type_style += 'gray;"';
@@ -116,7 +116,7 @@ var objectToTreeData = function(obj_raw, top_level) {
 
 	if (isError) {
 		if (obj.size_error) {
-			obj.err = obj.err.replace(/IGNORE/, '<span class="label label-default ignore_size" id="' + obj_raw._id + '">ignore</span>');
+			obj.err = obj.err.replace(/IGNORE/, '<a class="ignore_size" id="' + obj_raw._id + '">ignore..</a>');
 		}
 		return _errorToTreeData(obj);
 	}
