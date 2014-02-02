@@ -269,7 +269,7 @@ var renderLog = function(doc) {
 			$content.find('.scope').append(' [line: ' + doc.result.line + ']');
 		}
 	} else if (doc.eval_time) {
-		var formatted_time = moment(doc.eval_time).format('a h:mm:ss.SSS');
+		var formatted_time = moment(doc.eval_time).format('HH:mm:ss.SSS');
 		$content.find('.scope').html(formatted_time);
 	}
 
