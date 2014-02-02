@@ -104,6 +104,12 @@ ul.jqtree-tree .jqtree-toggler {
   width: 100%;
 }
 
+.scope {
+  z-index: -1;
+  opacity: 0.6;
+  font-weight: lighter;
+}
+
 .watch .scope {
   right: 5px;
   margin-top: 4px;
