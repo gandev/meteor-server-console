@@ -22,6 +22,8 @@ for both, meteor-server-console and [meteor-server-eval](https://github.com/gand
 - scaffolding (e.g. abee, boilerplate (devshop 11)!?) helpers
 - make object tree more interactive (e.g. jump to circulars, evaluate/show prototype)
 
+- tinytest restart after server restart not working properly (at the moment stays down), maybe detach but log...
+
 ### long term:
 
 - port to meteor ui

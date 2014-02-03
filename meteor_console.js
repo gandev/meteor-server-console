@@ -201,17 +201,31 @@ var renderLog = function(doc) {
 		$content.find('.log_level').addClass('label-success');
 	}
 
-	var result_message = ansiConvert.toHtml(escapeHtml(doc.result.message));
-	var lines = result_message.split(/\n/);
+	var message = escapeHtml(doc.result.message);
+	var lines = message.split(/\n/);
+
+	var isOnlyEmptyAdditionalLines = true;
 	var firstNotEmptyLine = -1;
-	var lastNotEmptyLine = 0;
-	_.each(lines || [], function(line, idx) {
-		if (!_.isEmpty(line) && firstNotEmptyLine === -1) {
-			firstNotEmptyLine = idx;
-		} else if (!_.isEmpty(line)) {
+	var lastNotEmptyLine = -1;
+	lines = _.map(lines || [], function(line, idx) {
+		if (line.trim().length > 0) {
+			if (firstNotEmptyLine === -1) {
+				firstNotEmptyLine = idx;
+			}
 			lastNotEmptyLine = idx;
+			if (idx > 0) {
+				isOnlyEmptyAdditionalLines = false;
+			}
+			return ansiConvert.toHtml(line);
+		} else {
+			return line;
 		}
 	});
+
+	if (firstNotEmptyLine === -1) {
+		return; //only render if at least one line with content
+	}
+
 	lines = lines.slice(firstNotEmptyLine, lastNotEmptyLine + 1);
 
 	//enables auto removing of log entries not produced by helper functions
@@ -225,39 +239,37 @@ var renderLog = function(doc) {
 
 	toggleAutoRemoveLog();
 
-	if (lines.length > 0) {
-		$content.find('.log_entry').append(lines[0]);
+	$content.find('.log_entry').append(lines[0]);
 
-		var $additional_lines = $content.find('.log_additional_lines');
-		if (lines.length > 1) {
-			$additional_lines.append(lines.slice(1).join('\n'));
+	var $additional_lines = $content.find('.log_additional_lines');
+	if (lines.length > 1 && !isOnlyEmptyAdditionalLines) {
+		$additional_lines.append(lines.slice(1).join('\n'));
 
-			var showLogLines = function(icon) {
-				$additional_lines.toggleClass('show_additional_lines', true);
-				$(icon).removeClass('glyphicon-plus');
-				$(icon).addClass('glyphicon-minus');
-			};
+		var showLogLines = function(icon) {
+			$additional_lines.toggleClass('show_additional_lines', true);
+			$(icon).removeClass('glyphicon-plus');
+			$(icon).addClass('glyphicon-minus');
+		};
 
-			$content.find('.additional_lines').on('click', function() {
-				if ($additional_lines.hasClass('show_additional_lines')) {
-					$additional_lines.toggleClass('show_additional_lines', false);
-					$(this).removeClass('glyphicon-minus');
-					$(this).addClass('glyphicon-plus');
-				} else {
-					showLogLines(this);
-				}
-				toggleAutoRemoveLog(); //so open logs will not be removed
-			});
-
-			//open last log entry (only helper logs) but only if initial data load ready
-			if (doc.crash || doc.helper && ServerEval._isResultSubReady()) {
-				showLogLines($content.find('.additional_lines'));
-			} else {
+		$content.find('.additional_lines').on('click', function() {
+			if ($additional_lines.hasClass('show_additional_lines')) {
 				$additional_lines.toggleClass('show_additional_lines', false);
+				$(this).removeClass('glyphicon-minus');
+				$(this).addClass('glyphicon-plus');
+			} else {
+				showLogLines(this);
 			}
+			toggleAutoRemoveLog(); //so open logs will not be removed
+		});
+
+		//open last log entry (only helper logs) but only if initial data load ready
+		if (doc.crash || doc.helper && ServerEval._isResultSubReady()) {
+			showLogLines($content.find('.additional_lines'));
 		} else {
-			$content.find('.additional_lines').css('display', 'none');
+			$additional_lines.toggleClass('show_additional_lines', false);
 		}
+	} else {
+		$content.find('.additional_lines').css('display', 'none');
 	}
 
 	if (doc.scope) {
