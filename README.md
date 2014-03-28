@@ -3,7 +3,7 @@ meteor-server-console
 
 is a tool which connects to a [meteor](http://www.meteor.com) server running the [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval) smartpackage and provides a way to evaluate javascript in the server environment.
 
-__With version 0.5 starts the evolution towards a terminal like development tool with helper functions and server log. Currently implemented helper functions support git and tinytest. Planned is support for scaffolding too. Please feel free to request features, suggest improvements or even add your own helpers like [meteor-server-eval git helpers](https://github.com/gandev-de/meteor-server-eval/blob/master/git_helpers.js)__
+__With version 0.5 starts the evolution towards a terminal like development tool with helper functions and server log. Currently implemented helper functions support git, tinytest and package skeleton creation. Please feel free to request features, suggest improvements or even add your own helpers like [meteor-server-eval git helpers](https://github.com/gandev-de/meteor-server-eval/blob/master/git_helpers.js)__
 
 I'm publishing meteor-server-console as a "Chrome DevTools" extension but its also possible to use it in other browsers
 (just clone the repository and open meteor_console.html).
@@ -38,7 +38,8 @@ I'm publishing meteor-server-console as a "Chrome DevTools" extension but its al
          - __.toggleLogging__ toggle interception of server side logs (default: ON)
          - __.updateMetadata__ mostly internal to update metadata like supported packages/helper
          - __.git__ basically calls git in the project repository (+ shortcut commands .gitStatus/.gitDiff/...)
-         - __.test-packages.__ starts meteor test-packages in app or package scope on port 5000 (--port to change)
+         - __.add-package__ adds a skeleton smartpackage (requires package name as parameter)
+         - __.test-package__ starts meteor test-packages in app or package scope on port 5000 (--port to change)
          - __.cancel-tests-xxx__ automatically added to stop test runner
 
 *    client commands:
