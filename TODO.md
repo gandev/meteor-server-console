@@ -1,6 +1,6 @@
 ## TODO 
 
-for both, meteor-server-console and [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval))
+for both, meteor-server-console and [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval)
 
 ### current bugs/limitations:
 
@@ -21,8 +21,6 @@ for both, meteor-server-console and [meteor-server-eval](https://github.com/gand
 - watches with update interval
 - scaffolding (e.g. abee, boilerplate (devshop 11)!?) helpers
 - make object tree more interactive (e.g. jump to circulars, evaluate/show prototype)
-
-- tinytest restart after server restart not working properly (at the moment stays down), maybe detach but log...
 
 ### long term:
 
