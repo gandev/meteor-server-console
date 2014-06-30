@@ -10,7 +10,7 @@ I'm publishing meteor-server-console as a "Chrome DevTools" extension but its al
 
 ## Setup
 
-*    OPTIONAL: install extension in your chrome (open chrome://extensions and drag and drop the .crx file)
+*    OPTIONAL: install [extension](https://github.com/gandev/meteor-server-console/releases) in your chrome (open chrome://extensions and drag and drop the .crx file)
 *    add smartpackage [meteor-server-eval](https://github.com/gandev-de/meteor-server-eval) to your app
 *    start your app and open meteor-server-console (appears in "Chrome DevTools" as the new Tab "Meteor Console")
 
@@ -38,7 +38,7 @@ I'm publishing meteor-server-console as a "Chrome DevTools" extension but its al
          - __.toggleLogging__ toggle interception of server side logs (default: ON)
          - __.updateMetadata__ mostly internal to update metadata like supported packages/helper
          - __.git__ basically calls git in the project repository (+ shortcut commands .gitStatus/.gitDiff/...)
-         - __.add-package__ adds a skeleton smartpackage (requires package name as parameter)
+         - __.create-package__ adds a skeleton smartpackage (requires package name as parameter)
          - __.test-package__ starts meteor test-packages in app or package scope on port 5000 (--port to change)
          - __.cancel-tests-xxx__ automatically added to stop test runner
 
