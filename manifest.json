@@ -1,6 +1,6 @@
 {
 	"name": "meteor-server-console",
-	"version": "0.5.1",
+	"version": "0.5.2",
 	"description": "Connect to a meteor server, evaluate expressions or execute custom helper functions and browse the results/log output.",
 	"devtools_page": "panel.html",
 	"icons": {

@@ -12,7 +12,7 @@
     UP: "connection up",
     DOWN: "connection down",
     _current: null,
-    _expectedClientVersion: null
+    _version: null
   };
 
   var last_crash_message;
@@ -136,9 +136,9 @@
     ddp.watch("server-eval-metadata", function(doc, msg) {
       if (msg === "added" || msg === "changed") {
         clearTimeout(metaDataTimeout);
-        var version = doc.expectedClientVersion || doc.version; /*TODO backcompat*/
-        if (version && SERVER_STATE._expectedClientVersion !== version && version !== VERSION) {
-          SERVER_STATE._expectedClientVersion = version;
+        var version = doc.version;
+        if (version && SERVER_STATE._version !== version && version !== VERSION) {
+          SERVER_STATE._version = version;
 
           ServerEval._serverStateChanged({
             state_txt: 'server-eval [' + currentHost + ':' + currentPort + ']' + " wrong version, expected: " + VERSION + " found: " + version,
