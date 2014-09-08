@@ -17,756 +17,758 @@ var watch_view_toggling;
 var ansiConvert = new AnsiToHtml();
 
 var focusInput = function() {
-	$('#run_eval').focus();
+  $('#run_eval').focus();
 };
 
 //optionally scrolls the page to the bottom of output if results are higher then window height
 var positioning = function(scroll) {
-	var output_height = $('#output').height();
-	var input_height = $('#input_eval').height();
+  var output_height = $('#output').height();
+  var input_height = $('#input_eval').height();
 
-	if (scroll) {
-		//scroll to output end
-		var top_pos = (output_height + input_height) - $(window).height();
-		$(document).scrollTop(top_pos);
-		$('#watch_view').animate({
-			'top': top_pos < 0 ? 0 : top_pos
-		});
-	} else {
-		//move watch view to the top of the current window, used when scrolling
-		var scroll_top = $(document).scrollTop();
-		var watch_top = $('#watch_view').position().top;
-		var isNotOnTop = scroll_top < watch_top;
+  if (scroll) {
+    //scroll to output end
+    var top_pos = (output_height + input_height) - $(window).height();
+    $(document).scrollTop(top_pos);
+    $('#watch_view').animate({
+      'top': top_pos < 0 ? 0 : top_pos
+    });
+  } else {
+    //move watch view to the top of the current window, used when scrolling
+    var scroll_top = $(document).scrollTop();
+    var watch_top = $('#watch_view').position().top;
+    var isNotOnTop = scroll_top < watch_top;
 
-		var watch_height = $('#watch_view').height();
-		var isOutsideOutput = scroll_top + watch_height < output_height + input_height;
-		//prevent moving if watch view is outside of the output, to allow scrolling in watch view
-		if (isOutsideOutput || isNotOnTop) {
-			$('#watch_view').animate({
-				'top': $(document).scrollTop()
-			});
-		}
-	}
+    var watch_height = $('#watch_view').height();
+    var isOutsideOutput = scroll_top + watch_height < output_height + input_height;
+    //prevent moving if watch view is outside of the output, to allow scrolling in watch view
+    if (isOutsideOutput || isNotOnTop) {
+      $('#watch_view').animate({
+        'top': $(document).scrollTop()
+      });
+    }
+  }
 };
 
 var setWidth = function(zero, cb) {
-	var watch_width = zero ? 0 : $(window).width() * WATCH_WIDTH / 100;
-	var console_width = $(window).width() - watch_width;
-	$('#console_view').animate({
-		right: watch_width,
-		width: console_width
-	}, function() {
-		if (zero) {
-			$(this).css('width', '100%');
-		}
-	});
+  var watch_width = zero ? 0 : $(window).width() * WATCH_WIDTH / 100;
+  var console_width = $(window).width() - watch_width;
+  $('#console_view').animate({
+    right: watch_width,
+    width: console_width
+  }, function() {
+    if (zero) {
+      $(this).css('width', '100%');
+    }
+  });
 
-	$('#watch_view').animate({
-		width: watch_width
-	}, cb);
+  $('#watch_view').animate({
+    width: watch_width
+  }, cb);
 };
 
 var evalExpression = function(expr, options) {
-	options = options || {};
-	_.extend(options, {
-		'package': package_scope,
-	});
+  options = options || {};
+  _.extend(options, {
+    'package': package_scope,
+  });
 
-	ServerEval._eval(expr, options);
+  ServerEval._eval(expr, options);
 };
 
 //add expression to history or move it to the end + reset cursor/cursor state
 var newExpression = function(expr) {
-	expressionHistory = _.filter(expressionHistory, function(e) {
-		return e !== expr;
-	});
-	expressionHistory.push(expr);
-	exprCursor = expressionHistory.length - 1;
-	exprCursorState = "bottom";
+  expressionHistory = _.filter(expressionHistory, function(e) {
+    return e !== expr;
+  });
+  expressionHistory.push(expr);
+  exprCursor = expressionHistory.length - 1;
+  exprCursorState = "bottom";
 };
 
 var createTemplateInstance = function(name, id) {
-	var $tmpl_instance = $('#' + name).clone();
-	if (id) {
-		$tmpl_instance.attr('id', id); //template id
-	} else {
-		$tmpl_instance.removeAttr('id');
-	}
-	return $tmpl_instance;
+  var $tmpl_instance = $('#' + name).clone();
+  if (id) {
+    $tmpl_instance.attr('id', id); //template id
+  } else {
+    $tmpl_instance.removeAttr('id');
+  }
+  return $tmpl_instance;
 };
 
 var createTree = function($content, value) {
-	$content.find('.content').addClass('eval_tree');
-	return $content.find('.eval_tree').tree({
-		data: objectToTreeData(value, true),
-		onCreateLi: function(node, $li) {
-			//use text as html because the treedata includes html
-			var $title = $li.find('.jqtree-title');
-			$title.html($title.text());
-		}
-	});
+  $content.find('.content').addClass('eval_tree');
+  return $content.find('.eval_tree').tree({
+    data: objectToTreeData(value, true),
+    onCreateLi: function(node, $li) {
+      //use text as html because the treedata includes html
+      var $title = $li.find('.jqtree-title');
+      $title.html($title.text());
+    }
+  });
 };
 
 var createReturnValue = function($content, value, cb) {
-	if (_.isObject(value.result)) {
-		var tree = createTree($content, value);
+  if (_.isObject(value.result)) {
+    var tree = createTree($content, value);
 
-		tree.find('.ignore_size').on('click', function() {
-			var id = this.id;
-			if (id === value._id) {
-				evalExpression(value.expr, {
-					ignore_size: true
-				});
-			}
-		});
-		if (cb) {
-			tree.bind('tree.close', cb);
-		}
-	} else {
-		$content.find('.content').addClass('eval_primitive');
-		$content.find('.eval_primitive').html(wrapPrimitives(value.result));
-	}
+    tree.find('.ignore_size').on('click', function() {
+      var id = this.id;
+      if (id === value._id) {
+        evalExpression(value.expr, {
+          ignore_size: true
+        });
+      }
+    });
+    if (cb) {
+      tree.bind('tree.close', cb);
+    }
+  } else {
+    $content.find('.content').addClass('eval_primitive');
+    $content.find('.eval_primitive').html(wrapPrimitives(value.result));
+  }
 
-	//expression and scope
-	$content.find('.eval_expr span').html(value.expr);
-	$content.find('.scope').html(value.scope);
-	$content.find('.scope').append(' [' + value.eval_exec_time + 'ms]');
+  //expression and scope
+  $content.find('.eval_expr span').html(value.expr);
+  $content.find('.scope').html(value.scope);
+  $content.find('.scope').append(' [' + value.eval_exec_time + 'ms]');
 };
 
 var renderWatch = function(watch) {
-	if (hiddenWatch) {
-		toggleWatch();
-	}
+  if (hiddenWatch) {
+    toggleWatch();
+  }
 
-	var $content = $("#" + watch._id);
-	if ($content.length === 0) {
-		$content = createTemplateInstance('watch_tmpl', watch._id);
+  var $content = $("#" + watch._id);
+  if ($content.length === 0) {
+    $content = createTemplateInstance('watch_tmpl', watch._id);
 
-		$("#watch_view").append($content);
-	} else {
-		$content.find('.watch_refresh').unbind();
-		$content.find('.watch_remove').unbind();
-		//produced a flicker when using .tree() again
-		$content.find('.eval_tree').replaceWith($('<div class="eval_tree"></div>'));
-	}
+    $("#watch_view").append($content);
+  } else {
+    $content.find('.watch_refresh').unbind();
+    $content.find('.watch_remove').unbind();
+    //produced a flicker when using .tree() again
+    $content.find('.eval_tree').replaceWith($('<div class="eval_tree"></div>'));
+  }
 
-	createReturnValue($content, watch);
+  createReturnValue($content, watch);
 
-	$content.find('.watch_refresh').bind("click", function() {
-		watch.update();
-	});
+  $content.find('.watch_refresh').bind("click", function() {
+    watch.update();
+  });
 
-	$content.find('.watch_remove').bind("click", function() {
-		ServerEval.removeWatch(watch._id);
-	});
+  $content.find('.watch_remove').bind("click", function() {
+    ServerEval.removeWatch(watch._id);
+  });
 
-	positioning();
+  positioning();
 };
 
 //inserts a new output entry into the dom
 //expr + scope + object tree (jqtree) / plain div with non object result
 var renderResult = function(doc) {
-	var $content = createTemplateInstance(doc.helper ? 'helper_output_tmpl' : 'result_output_tmpl');
+  var $content = createTemplateInstance(doc.helper ? 'helper_output_tmpl' : 'result_output_tmpl');
 
-	createReturnValue($content, doc, function(e) {
-		if (!e.node.parent.parent) {
-			//focusInput();
-			positioning(true);
-		}
-	});
+  createReturnValue($content, doc, function(e) {
+    if (!e.node.parent.parent) {
+      //focusInput();
+      positioning(true);
+    }
+  });
 
-	$("#output").append($content);
+  $("#output").append($content);
 
-	positioning(true);
+  positioning(true);
 };
 
 var removeOldResults = function(max, clazz) {
-	var $elements = $("#output .result." + clazz);
-	for (var i = 0; i <= $elements.length; i++) {
-		if (i > max) {
-			$("#output .result." + clazz).first().remove();
-		}
-	}
+  var $elements = $("#output .result." + clazz);
+  for (var i = 0; i <= $elements.length; i++) {
+    if (i > max) {
+      $("#output .result." + clazz).first().remove();
+    }
+  }
 };
 
 var renderLog = function(doc) {
-	doc.result = doc.result || {};
-	if (!doc.result.message) return;
+  doc.result = doc.result || {};
+  if (!doc.result.message) return;
 
-	var $content = createTemplateInstance('result_log_tmpl');
+  var $content = createTemplateInstance('result_log_tmpl');
 
-	if (doc.err || doc.result.level === 'error') {
-		$content.find('.log_level').addClass('label-danger');
-	} else {
-		$content.find('.log_level').addClass('label-success');
-	}
+  $content.find('.log_level').text(doc.logSource);
 
-	var message = escapeHtml(doc.result.message);
-	var lines = message.split(/\n/);
+  if (doc.err || doc.result.level === 'error') {
+    $content.find('.log_level').addClass('label-danger');
+  } else {
+    $content.find('.log_level').addClass('label-success');
+  }
 
-	var isOnlyEmptyAdditionalLines = true;
-	var firstNotEmptyLine = -1;
-	var lastNotEmptyLine = -1;
-	lines = _.map(lines || [], function(line, idx) {
-		if (line.trim().length > 0) {
-			if (firstNotEmptyLine === -1) {
-				firstNotEmptyLine = idx;
-			}
-			lastNotEmptyLine = idx;
-			if (idx > 0) {
-				isOnlyEmptyAdditionalLines = false;
-			}
-			return ansiConvert.toHtml(line);
-		} else {
-			return line;
-		}
-	});
+  var message = escapeHtml(doc.result.message);
+  var lines = message.split(/\n/);
 
-	if (firstNotEmptyLine === -1) {
-		return; //only render if at least one line with content
-	}
+  var isOnlyEmptyAdditionalLines = true;
+  var firstNotEmptyLine = -1;
+  var lastNotEmptyLine = -1;
+  lines = _.map(lines || [], function(line, idx) {
+    if (line.trim().length > 0) {
+      if (firstNotEmptyLine === -1) {
+        firstNotEmptyLine = idx;
+      }
+      lastNotEmptyLine = idx;
+      if (idx > 0) {
+        isOnlyEmptyAdditionalLines = false;
+      }
+      return ansiConvert.toHtml(line);
+    } else {
+      return line;
+    }
+  });
 
-	lines = lines.slice(firstNotEmptyLine, lastNotEmptyLine + 1);
+  if (firstNotEmptyLine === -1) {
+    return; //only render if at least one line with content
+  }
 
-	//enables auto removing of log entries not produced by helper functions
-	var toggleAutoRemoveLog = function() {
-		if (!doc.helper && !$content.hasClass('auto_remove')) {
-			$content.addClass('auto_remove');
-		} else if ($content.hasClass('auto_remove')) {
-			$content.removeClass('auto_remove');
-		}
-	};
+  lines = lines.slice(firstNotEmptyLine, lastNotEmptyLine + 1);
 
-	toggleAutoRemoveLog();
+  //enables auto removing of log entries not produced by helper functions
+  var toggleAutoRemoveLog = function() {
+    if (!doc.helper && !$content.hasClass('auto_remove')) {
+      $content.addClass('auto_remove');
+    } else if ($content.hasClass('auto_remove')) {
+      $content.removeClass('auto_remove');
+    }
+  };
 
-	$content.find('.log_entry').append(lines[0]);
+  toggleAutoRemoveLog();
 
-	var $additional_lines = $content.find('.log_additional_lines');
-	if (lines.length > 1 && !isOnlyEmptyAdditionalLines) {
-		$additional_lines.append(lines.slice(1).join('\n'));
+  $content.find('.log_entry').append(lines[0]);
 
-		var showLogLines = function(icon) {
-			$additional_lines.toggleClass('show_additional_lines', true);
-			$(icon).removeClass('glyphicon-plus');
-			$(icon).addClass('glyphicon-minus');
-		};
+  var $additional_lines = $content.find('.log_additional_lines');
+  if (lines.length > 1 && !isOnlyEmptyAdditionalLines) {
+    $additional_lines.append(lines.slice(1).join('\n'));
 
-		$content.find('.additional_lines').on('click', function() {
-			if ($additional_lines.hasClass('show_additional_lines')) {
-				$additional_lines.toggleClass('show_additional_lines', false);
-				$(this).removeClass('glyphicon-minus');
-				$(this).addClass('glyphicon-plus');
-			} else {
-				showLogLines(this);
-			}
-			toggleAutoRemoveLog(); //so open logs will not be removed
-		});
+    var showLogLines = function(icon) {
+      $additional_lines.toggleClass('show_additional_lines', true);
+      $(icon).removeClass('glyphicon-plus');
+      $(icon).addClass('glyphicon-minus');
+    };
 
-		//open last log entry (only helper logs) but only if initial data load ready
-		if (doc.crash || doc.helper && ServerEval._isResultSubReady()) {
-			showLogLines($content.find('.additional_lines'));
-		} else {
-			$additional_lines.toggleClass('show_additional_lines', false);
-		}
-	} else {
-		$content.find('.additional_lines').css('display', 'none');
-	}
+    $content.find('.additional_lines').on('click', function() {
+      if ($additional_lines.hasClass('show_additional_lines')) {
+        $additional_lines.toggleClass('show_additional_lines', false);
+        $(this).removeClass('glyphicon-minus');
+        $(this).addClass('glyphicon-plus');
+      } else {
+        showLogLines(this);
+      }
+      toggleAutoRemoveLog(); //so open logs will not be removed
+    });
 
-	if (doc.scope) {
-		$content.find('.scope').html(doc.scope);
-		$content.find('.scope').append(' [' + doc.eval_exec_time + 'ms]');
-	} else if (doc.result.file) {
-		$content.find('.scope').html(doc.result.file);
-		if (doc.result.line) {
-			$content.find('.scope').append(' [line: ' + doc.result.line + ']');
-		}
-	} else if (doc.eval_time) {
-		var formatted_time = moment(doc.eval_time).format('HH:mm:ss.SSS');
-		$content.find('.scope').html(formatted_time);
-	}
+    //open last log entry (only helper logs) but only if initial data load ready
+    if (doc.crash || doc.helper && ServerEval._isResultSubReady()) {
+      showLogLines($content.find('.additional_lines'));
+    } else {
+      $additional_lines.toggleClass('show_additional_lines', false);
+    }
+  } else {
+    $content.find('.additional_lines').css('display', 'none');
+  }
 
-	$("#output").append($content);
+  if (doc.scope) {
+    $content.find('.scope').html(doc.scope);
+    $content.find('.scope').append(' [' + doc.eval_exec_time + 'ms]');
+  } else if (doc.result.file) {
+    $content.find('.scope').html(doc.result.file);
+    if (doc.result.line) {
+      $content.find('.scope').append(' [line: ' + doc.result.line + ']');
+    }
+  } else if (doc.eval_time) {
+    var formatted_time = moment(doc.eval_time).format('HH:mm:ss.SSS');
+    $content.find('.scope').html(formatted_time);
+  }
 
-	removeOldResults(MAX_LOG_ENTRIES, 'log.auto_remove');
+  $("#output").append($content);
 
-	//only scroll if log expected while helper,
-	//otherwise scrolling not possible if frequently added logs!
-	if (doc.helper) {
-		positioning(true);
-	}
+  removeOldResults(MAX_LOG_ENTRIES, 'log.auto_remove');
+
+  //only scroll if log expected while helper,
+  //otherwise scrolling not possible if frequently added logs!
+  if (doc.helper) {
+    positioning(true);
+  }
 };
 
 //inserts a new internal message into the dom
 var renderInternalMessage = function(state) {
-	var $content = createTemplateInstance('internal_output_tmpl');
+  var $content = createTemplateInstance('internal_output_tmpl');
 
-	var lbl = "default";
-	switch (state.type) {
-		case "MSG":
-			lbl = "warning";
-			break;
-		case "ERROR":
-			lbl = "danger";
-			break;
-		case "SUCCESS":
-			lbl = "success";
-			break;
-	}
-	$content.find('.internal_msg span').addClass('label-' + lbl);
-	$content.find('.internal_msg span').html(state.txt);
+  var lbl = "default";
+  switch (state.type) {
+    case "MSG":
+      lbl = "warning";
+      break;
+    case "ERROR":
+      lbl = "danger";
+      break;
+    case "SUCCESS":
+      lbl = "success";
+      break;
+  }
+  $content.find('.internal_msg span').addClass('label-' + lbl);
+  $content.find('.internal_msg span').html(state.txt);
 
-	$("#output").append($content);
+  $("#output").append($content);
 
-	removeOldResults(3, 'internal');
-	positioning(true);
+  removeOldResults(3, 'internal');
+  positioning(true);
 };
 
 var renderAutocomplete = function(doc) {
-	var $content = createTemplateInstance('autocomplete_output_tmpl');
+  var $content = createTemplateInstance('autocomplete_output_tmpl');
 
-	var $table = $content.find('.autocomplete table tbody');
-	var column_count = 0;
-	var $table_row;
-	_.each(doc.result || [], function(value) {
-		if (column_count === 0) {
-			$table_row = $('<tr></tr>');
-		}
+  var $table = $content.find('.autocomplete table tbody');
+  var column_count = 0;
+  var $table_row;
+  _.each(doc.result || [], function(value) {
+    if (column_count === 0) {
+      $table_row = $('<tr></tr>');
+    }
 
-		$table_row.append('<td>' + value + '</td>');
-		column_count++;
+    $table_row.append('<td>' + value + '</td>');
+    column_count++;
 
-		if (column_count === 4) {
-			column_count = 0;
-			$table.append($table_row);
-			$table_row = null;
-		}
-	});
-	if ($table_row) {
-		$table.append($table_row);
-	}
+    if (column_count === 4) {
+      column_count = 0;
+      $table.append($table_row);
+      $table_row = null;
+    }
+  });
+  if ($table_row) {
+    $table.append($table_row);
+  }
 
-	//expression and scope
-	$content.find('.eval_expr span').html(doc.expr);
-	$content.find('.scope').html(doc.scope);
+  //expression and scope
+  $content.find('.eval_expr span').html(doc.expr);
+  $content.find('.scope').html(doc.scope);
 
-	$("#output").append($content);
+  $("#output").append($content);
 
-	removeOldResults(2, 'autocomplete');
+  removeOldResults(2, 'autocomplete');
 
-	positioning(true);
+  positioning(true);
 };
 
 var clearOutput = function() {
-	ServerEval.clear();
-	$("#output .result").remove();
+  ServerEval.clear();
+  $("#output .result").remove();
 };
 
 var watchUpdater = function(watch) {
-	return function() {
-		evalExpression(watch.expr, {
-			watch: true
-		});
-	};
+  return function() {
+    evalExpression(watch.expr, {
+      watch: true
+    });
+  };
 };
 
 var toggleWatch = function(reopen) {
-	if (watch_view_toggling) return;
-	watch_view_toggling = true;
+  if (watch_view_toggling) return;
+  watch_view_toggling = true;
 
-	if (!hiddenWatch) {
-		$('#watch_view').hide();
+  if (!hiddenWatch) {
+    $('#watch_view').hide();
 
-		setWidth(true, function() {
-			hiddenWatch = true;
-			watch_view_toggling = false;
+    setWidth(true, function() {
+      hiddenWatch = true;
+      watch_view_toggling = false;
 
-			if (reopen && $('#watch_view .watch').length > 0) {
-				toggleWatch();
-			}
-		});
-	} else {
-		setWidth(false, function() {
-			$('#watch_view').show();
-			hiddenWatch = false;
-			watch_view_toggling = false;
-		});
-	}
+      if (reopen && $('#watch_view .watch').length > 0) {
+        toggleWatch();
+      }
+    });
+  } else {
+    setWidth(false, function() {
+      $('#watch_view').show();
+      hiddenWatch = false;
+      watch_view_toggling = false;
+    });
+  }
 };
 
 var executeClientCommand = function(cmd) {
-	var $package_scope = $('.current_scope');
+  var $package_scope = $('.current_scope');
 
-	if (cmd === ":reload") {
-		window.location.reload();
-		return true;
-	} else if (cmd.match(/:scope=.*/)) {
-		package_scope = cmd.split("=")[1];
-		$package_scope.html(package_scope);
-		$package_scope.show();
-		return true;
-	} else if (cmd.match(/:set-port=\d*/)) {
-		var port = cmd.split("=")[1];
-		renderInternalMessage({
-			txt: 'changed port to [PORT: ' + port + ']',
-			type: "MSG"
-		});
-		ServerEval.changeServer(null, port);
-		return true;
-	} else if (cmd.match(/:port\d*/)) {
-		renderInternalMessage({
-			txt: '[PORT: ' + ServerEval.currentPort() + ']',
-			type: 'MSG'
-		});
-		return true;
-	} else if (cmd.match(/:set-host=\d*/)) {
-		var host = cmd.split("=")[1];
-		renderInternalMessage({
-			txt: 'changed host to [HOST: ' + host + ']',
-			type: "MSG"
-		});
-		ServerEval.changeServer(host);
-		return true;
-	} else if (cmd.match(/:host\d*/)) {
-		renderInternalMessage({
-			txt: '[HOST: ' + ServerEval.currentHost() + ']',
-			type: 'MSG'
-		});
-		return true;
-	} else if (cmd.match(/:reset-scope/)) {
-		$package_scope.hide();
-		package_scope = null;
-		return true;
-	} else if (cmd.match(/:watch=/)) {
-		var watch_expr = cmd.split("=")[1];
-		if (watch_expr) {
-			watchUpdater({
-				expr: watch_expr,
-				watch_scope: package_scope
-			})();
-			newExpression(cmd);
-		}
-		return true;
-	} else if (cmd.match(/:watch-view/)) {
-		var width = +cmd.substr(13);
-		if (isNaN(width)) return true;
+  if (cmd === ":reload") {
+    window.location.reload();
+    return true;
+  } else if (cmd.match(/:scope=.*/)) {
+    package_scope = cmd.split("=")[1];
+    $package_scope.html(package_scope);
+    $package_scope.show();
+    return true;
+  } else if (cmd.match(/:set-port=\d*/)) {
+    var port = cmd.split("=")[1];
+    renderInternalMessage({
+      txt: 'changed port to [PORT: ' + port + ']',
+      type: "MSG"
+    });
+    ServerEval.changeServer(null, port);
+    return true;
+  } else if (cmd.match(/:port\d*/)) {
+    renderInternalMessage({
+      txt: '[PORT: ' + ServerEval.currentPort() + ']',
+      type: 'MSG'
+    });
+    return true;
+  } else if (cmd.match(/:set-host=\d*/)) {
+    var host = cmd.split("=")[1];
+    renderInternalMessage({
+      txt: 'changed host to [HOST: ' + host + ']',
+      type: "MSG"
+    });
+    ServerEval.changeServer(host);
+    return true;
+  } else if (cmd.match(/:host\d*/)) {
+    renderInternalMessage({
+      txt: '[HOST: ' + ServerEval.currentHost() + ']',
+      type: 'MSG'
+    });
+    return true;
+  } else if (cmd.match(/:reset-scope/)) {
+    $package_scope.hide();
+    package_scope = null;
+    return true;
+  } else if (cmd.match(/:watch=/)) {
+    var watch_expr = cmd.split("=")[1];
+    if (watch_expr) {
+      watchUpdater({
+        expr: watch_expr,
+        watch_scope: package_scope
+      })();
+      newExpression(cmd);
+    }
+    return true;
+  } else if (cmd.match(/:watch-view/)) {
+    var width = +cmd.substr(13);
+    if (isNaN(width)) return true;
 
-		var width_old = WATCH_WIDTH;
-		if (width === 0) {
-			WATCH_WIDTH = 30;
-		} else {
-			WATCH_WIDTH = width;
-		}
+    var width_old = WATCH_WIDTH;
+    if (width === 0) {
+      WATCH_WIDTH = 30;
+    } else {
+      WATCH_WIDTH = width;
+    }
 
-		if (width === 0 || WATCH_WIDTH === width_old || hiddenWatch) {
-			toggleWatch();
-		} else if (WATCH_WIDTH !== width_old) {
-			setWidth();
-		}
-		return true;
-	} else if (cmd.match(/:max-log-entries=/)) {
-		var max = parseInt(cmd.split("=")[1], 10);
-		if (!isNaN(max)) {
-			MAX_LOG_ENTRIES = max;
-			removeOldResults(MAX_LOG_ENTRIES, 'log.auto_remove');
-		}
-		return true;
-	} else if (cmd.match(/:collapse-logs/)) {
-		$('.show_additional_lines').removeClass('show_additional_lines');
-		$('.additional_lines').removeClass('glyphicon-minus');
-		$('.additional_lines').addClass('glyphicon-plus');
-		return true;
-	}
+    if (width === 0 || WATCH_WIDTH === width_old || hiddenWatch) {
+      toggleWatch();
+    } else if (WATCH_WIDTH !== width_old) {
+      setWidth();
+    }
+    return true;
+  } else if (cmd.match(/:max-log-entries=/)) {
+    var max = parseInt(cmd.split("=")[1], 10);
+    if (!isNaN(max)) {
+      MAX_LOG_ENTRIES = max;
+      removeOldResults(MAX_LOG_ENTRIES, 'log.auto_remove');
+    }
+    return true;
+  } else if (cmd.match(/:collapse-logs/)) {
+    $('.show_additional_lines').removeClass('show_additional_lines');
+    $('.additional_lines').removeClass('glyphicon-minus');
+    $('.additional_lines').addClass('glyphicon-plus');
+    return true;
+  }
 };
 
 var executeServerCommand = function(cmd) {
-	if (cmd === ".clear") {
-		clearOutput();
-		positioning(true);
-		return true;
-	} else {
-		var split_cmd = cmd.split(/\s+/g);
-		var command = split_cmd[0];
-		var args = split_cmd.slice(1);
-		ServerEval.execute(command, package_scope, args);
-		return true;
-	}
+  if (cmd === ".clear") {
+    clearOutput();
+    positioning(true);
+    return true;
+  } else {
+    var split_cmd = cmd.split(/\s+/g);
+    var command = split_cmd[0];
+    var args = split_cmd.slice(1);
+    ServerEval.execute(command, package_scope, args);
+    return true;
+  }
 };
 
 var internalCommand = function(cmd) {
-	if (cmd.match(/^\..*/)) {
-		return executeServerCommand(cmd);
-	} else if (cmd.match(/^:.*/)) {
-		return executeClientCommand(cmd);
-	}
-	return false;
+  if (cmd.match(/^\..*/)) {
+    return executeServerCommand(cmd);
+  } else if (cmd.match(/^:.*/)) {
+    return executeClientCommand(cmd);
+  }
+  return false;
 };
 
 //console handler, handles: up, down, enter and ctrl + space
 var consoleHandler = function(evt) {
-	var eval_str = $("#run_eval").val();
-	if (evt.keyCode == 13) /* enter */ {
-		if (!internalCommand(eval_str)) {
-			evalExpression(eval_str);
-		}
-		$("#run_eval").val("");
-	} else if (evt.keyCode == 38) /*up*/ {
-		if (exprCursor > 0) {
-			if (exprCursorState === 'up') {
-				exprCursor--;
-			}
-			$("#run_eval").val(expressionHistory[exprCursor]);
-			exprCursorState = "up";
-		} else if (exprCursor === 0) {
-			$("#run_eval").val(expressionHistory[exprCursor]);
-		}
-	} else if (evt.keyCode == 40) /*down*/ {
-		if (exprCursor < expressionHistory.length - 1) {
-			if (exprCursorState === 'down') {
-				exprCursor++;
-			}
-			$("#run_eval").val(expressionHistory[exprCursor + 1]);
-			exprCursorState = "down";
-		} else {
-			$("#run_eval").val("");
-			exprCursorState = "bottom";
-		}
-	} else if (evt.ctrlKey && evt.keyCode === 32) {
-		eval_str = eval_str || '';
-		var dotIdx = eval_str.lastIndexOf('.');
-		var search;
-		if (!eval_str) {
-			eval_str = 'this';
-		} else {
-			if (dotIdx === -1) {
-				eval_str = 'this.' + eval_str;
-				dotIdx = 4;
-			}
-			search = eval_str.substr(dotIdx);
-			eval_str = eval_str.substring(0, dotIdx);
-		}
+  var eval_str = $("#run_eval").val();
+  if (evt.keyCode == 13) /* enter */ {
+    if (!internalCommand(eval_str)) {
+      evalExpression(eval_str);
+    }
+    $("#run_eval").val("");
+  } else if (evt.keyCode == 38) /*up*/ {
+    if (exprCursor > 0) {
+      if (exprCursorState === 'up') {
+        exprCursor--;
+      }
+      $("#run_eval").val(expressionHistory[exprCursor]);
+      exprCursorState = "up";
+    } else if (exprCursor === 0) {
+      $("#run_eval").val(expressionHistory[exprCursor]);
+    }
+  } else if (evt.keyCode == 40) /*down*/ {
+    if (exprCursor < expressionHistory.length - 1) {
+      if (exprCursorState === 'down') {
+        exprCursor++;
+      }
+      $("#run_eval").val(expressionHistory[exprCursor + 1]);
+      exprCursorState = "down";
+    } else {
+      $("#run_eval").val("");
+      exprCursorState = "bottom";
+    }
+  } else if (evt.ctrlKey && evt.keyCode === 32) {
+    eval_str = eval_str || '';
+    var dotIdx = eval_str.lastIndexOf('.');
+    var search;
+    if (!eval_str) {
+      eval_str = 'this';
+    } else {
+      if (dotIdx === -1) {
+        eval_str = 'this.' + eval_str;
+        dotIdx = 4;
+      }
+      search = eval_str.substr(dotIdx);
+      eval_str = eval_str.substring(0, dotIdx);
+    }
 
-		evalExpression(eval_str, {
-			autocomplete: true,
-			search: search && search.length > 1 ? search.substr(1) : undefined
-		});
-	}
+    evalExpression(eval_str, {
+      autocomplete: true,
+      search: search && search.length > 1 ? search.substr(1) : undefined
+    });
+  }
 };
 
 var setupCommandAutocomplete = function(metadata) {
-	metadata = metadata || {};
-	//use server-eval metadata to show supported packages
-	var packageTags = _.map(metadata.supported_packages || [], function(pkg) {
-		return ":scope=" + pkg;
-	});
+  metadata = metadata || {};
+  //use server-eval metadata to show supported packages
+  var packageTags = _.map(metadata.supported_packages || [], function(pkg) {
+    return ":scope=" + pkg;
+  });
 
-	var clientCommands = [
-		":set-port=",
-		":set-port=3000",
-		":set-host=",
-		":set-host=localhost",
-		":port",
-		":host",
-		":watch=",
-		":watch-view",
-		":watch-view60",
-		":max-log-entries=10",
-		":reload",
-		":scope=",
-		":reset-scope",
-		":collapse-logs"
-	];
-	clientCommands = clientCommands.concat(packageTags);
+  var clientCommands = [
+    ":set-port=",
+    ":set-port=3000",
+    ":set-host=",
+    ":set-host=localhost",
+    ":port",
+    ":host",
+    ":watch=",
+    ":watch-view",
+    ":watch-view60",
+    ":max-log-entries=10",
+    ":reload",
+    ":scope=",
+    ":reset-scope",
+    ":collapse-logs"
+  ];
+  clientCommands = clientCommands.concat(packageTags);
 
-	var helperTags = _.map(metadata.helpers || [], function(helper) {
-		return "." + helper;
-	});
+  var helperTags = _.map(metadata.helpers || [], function(helper) {
+    return "." + helper;
+  });
 
-	var serverCommands = [
-		".clear"
-	];
-	serverCommands = serverCommands.concat(helperTags);
+  var serverCommands = [
+    ".clear"
+  ];
+  serverCommands = serverCommands.concat(helperTags);
 
-	$("#run_eval").autocomplete({
-		position: {
-			my: "left bottom",
-			at: "left top",
-			collision: "flip"
-		},
-		//minLength: 3,
-		source: function(request, response) {
-			//only allow matches starting with the input value
-			var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
-			var tags = [];
-			if (request.term.match(/^:/)) {
-				if (request.term.match(/^:scope/)) {
-					tags = _.uniq(clientCommands.concat(_.map(metadata.packages || [], function(pkg) {
-						return ":scope=" + pkg;
-					})));
-				} else {
-					tags = clientCommands;
-				}
-			} else if (request.term.match(/^\./)) {
-				tags = serverCommands;
-			}
+  $("#run_eval").autocomplete({
+    position: {
+      my: "left bottom",
+      at: "left top",
+      collision: "flip"
+    },
+    //minLength: 3,
+    source: function(request, response) {
+      //only allow matches starting with the input value
+      var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
+      var tags = [];
+      if (request.term.match(/^:/)) {
+        if (request.term.match(/^:scope/)) {
+          tags = _.uniq(clientCommands.concat(_.map(metadata.packages || [], function(pkg) {
+            return ":scope=" + pkg;
+          })));
+        } else {
+          tags = clientCommands;
+        }
+      } else if (request.term.match(/^\./)) {
+        tags = serverCommands;
+      }
 
-			response($.grep(tags, function(item) {
-				return matcher.test(item);
-			}));
-		},
-		open: function(event, ui) {
-			$("#run_eval").unbind('keyup', consoleHandler);
-			$('#run_eval').autocomplete("widget").width('auto');
-		},
-		close: function(event, ui) {
-			//neccessary because selection with enter triggers run_eval keyup
-			setTimeout(function() {
-				$("#run_eval").bind('keyup', consoleHandler);
-			}, 400);
-		}
-	});
+      response($.grep(tags, function(item) {
+        return matcher.test(item);
+      }));
+    },
+    open: function(event, ui) {
+      $("#run_eval").unbind('keyup', consoleHandler);
+      $('#run_eval').autocomplete("widget").width('auto');
+    },
+    close: function(event, ui) {
+      //neccessary because selection with enter triggers run_eval keyup
+      setTimeout(function() {
+        $("#run_eval").bind('keyup', consoleHandler);
+      }, 400);
+    }
+  });
 };
 
 $(document).ready(function() {
-	focusInput();
+  focusInput();
 
-	$(document).bind('keydown', function(evt) {
-		if (!evt.altKey && !evt.ctrlKey && !evt.metaKey &&
-			(evt.keyCode > 47 && evt.keyCode < 91 ||
-				evt.keyCode === 190 ||
-				evt.keyCode === 186 ||
-				evt.keyCode === 8 /*BACKSPACE*/ ||
-				evt.keyCode === 38 /*UP*/ ||
-				evt.keyCode === 40 /*DOWN*/ )) {
-			focusInput();
-		}
-	});
+  $(document).bind('keydown', function(evt) {
+    if (!evt.altKey && !evt.ctrlKey && !evt.metaKey &&
+      (evt.keyCode > 47 && evt.keyCode < 91 ||
+      evt.keyCode === 190 ||
+      evt.keyCode === 186 ||
+      evt.keyCode === 8 /*BACKSPACE*/ ||
+      evt.keyCode === 38 /*UP*/ ||
+      evt.keyCode === 40 /*DOWN*/ )) {
+      focusInput();
+    }
+  });
 
-	//wire and initialize ui
-	$("#run_eval").bind('keyup', consoleHandler);
-	setupCommandAutocomplete();
+  //wire and initialize ui
+  $("#run_eval").bind('keyup', consoleHandler);
+  setupCommandAutocomplete();
 
-	var scrollTimeout;
-	$(window).bind("scroll", function() {
-		clearTimeout(scrollTimeout);
-		scrollTimeout = setTimeout(function() {
-			positioning();
-		}, 100);
-	});
+  var scrollTimeout;
+  $(window).bind("scroll", function() {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(function() {
+      positioning();
+    }, 100);
+  });
 
-	var resizeTimeout;
-	$(window).resize(function() {
-		clearTimeout(resizeTimeout);
-		resizeTimeout = setTimeout(function() {
-			if (!hiddenWatch) {
-				setWidth();
-			}
-		}, 100);
-	});
+  var resizeTimeout;
+  $(window).resize(function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(function() {
+      if (!hiddenWatch) {
+        setWidth();
+      }
+    }, 100);
+  });
 
-	//listen to server eval events
-	ServerEval.listenForServerState(function(evt) {
-		renderInternalMessage({
-			txt: evt.state_txt,
-			type: evt.state_type
-		});
+  //listen to server eval events
+  ServerEval.listenForServerState(function(evt) {
+    renderInternalMessage({
+      txt: evt.state_txt,
+      type: evt.state_type
+    });
 
-		if (evt.state_type === "SUCCESS") {
-			//remove old watches and close watch view with reopen true
-			//(if there are watches getting added while closing)
-			$('#watch_view .watch').remove();
-			if (!hiddenWatch) {
-				toggleWatch(true);
-			}
-		}
-	});
+    if (evt.state_type === "SUCCESS") {
+      //remove old watches and close watch view with reopen true
+      //(if there are watches getting added while closing)
+      $('#watch_view .watch').remove();
+      if (!hiddenWatch) {
+        toggleWatch(true);
+      }
+    }
+  });
 
-	ServerEval.listenForMetadata(function(metadata) {
-		setupCommandAutocomplete(metadata);
-	});
+  ServerEval.listenForMetadata(function(metadata) {
+    setupCommandAutocomplete(metadata);
+  });
 
-	ServerEval.listenForWatchUpdates(function(evt) {
-		var watch = evt.watch_result;
-		watch.update = watchUpdater(watch);
-		watches[watch._id] = watch;
+  ServerEval.listenForWatchUpdates(function(evt) {
+    var watch = evt.watch_result;
+    watch.update = watchUpdater(watch);
+    watches[watch._id] = watch;
 
-		renderWatch(watch);
-	});
+    renderWatch(watch);
+  });
 
-	ServerEval.listenForWatchRemoved(function(evt) {
-		$('#' + evt.watch_id).remove();
-		if ($('#watch_view .watch').length === 0) {
-			toggleWatch();
-		}
-	});
+  ServerEval.listenForWatchRemoved(function(evt) {
+    $('#' + evt.watch_id).remove();
+    if ($('#watch_view .watch').length === 0) {
+      toggleWatch();
+    }
+  });
 
-	var completeInputValue = function(value) {
-		var input_value = $("#run_eval").val();
-		var dotIdx = input_value.lastIndexOf('.');
-		if (dotIdx >= 0) {
-			input_value = input_value.substring(0, dotIdx + 1) + value;
-		} else {
-			input_value = value;
-		}
-		$("#run_eval").val(input_value);
-	};
+  var completeInputValue = function(value) {
+    var input_value = $("#run_eval").val();
+    var dotIdx = input_value.lastIndexOf('.');
+    if (dotIdx >= 0) {
+      input_value = input_value.substring(0, dotIdx + 1) + value;
+    } else {
+      input_value = value;
+    }
+    $("#run_eval").val(input_value);
+  };
 
-	ServerEval.listenForNewResults(function(evt) {
-		if (evt.result_doc && evt.result_doc.expr && !(evt.result_doc.autocomplete || evt.result_doc.helper)) {
-			newExpression(evt.result_doc.expr);
-		} else if (evt.result_doc && evt.result_doc.helper) {
-			newExpression(evt.result_doc.expr);
-		}
+  ServerEval.listenForNewResults(function(evt) {
+    if (evt.result_doc && evt.result_doc.expr && !(evt.result_doc.autocomplete || evt.result_doc.helper)) {
+      newExpression(evt.result_doc.expr);
+    } else if (evt.result_doc && evt.result_doc.helper) {
+      newExpression(evt.result_doc.expr);
+    }
 
-		//prevent to show autocompletes on reload
-		if (evt.result_doc.autocomplete && ServerEval._isResultSubReady()) {
-			if (evt.result_doc.result.length === 1) {
-				var first_completion = evt.result_doc.result[0];
-				completeInputValue(first_completion);
-			} else if (evt.result_doc.result.length > 1) {
-				var completions = evt.result_doc.result;
-				var mutual_part = "";
+    //prevent to show autocompletes on reload
+    if (evt.result_doc.autocomplete && ServerEval._isResultSubReady()) {
+      if (evt.result_doc.result.length === 1) {
+        var first_completion = evt.result_doc.result[0];
+        completeInputValue(first_completion);
+      } else if (evt.result_doc.result.length > 1) {
+        var completions = evt.result_doc.result;
+        var mutual_part = "";
 
-				var is_mutual_char = function(idx) {
-					var isInAll = true;
-					var _char = completions[0].charAt(idx);
-					for (var i = 0; i < completions.length; i++) {
-						var charAtIdx = completions[i].charAt(idx);
-						if (charAtIdx !== _char) {
-							isInAll = false;
-						}
-					}
-					if (isInAll) {
-						mutual_part += _char;
-						return true;
-					}
-					return false;
-				};
+        var is_mutual_char = function(idx) {
+          var isInAll = true;
+          var _char = completions[0].charAt(idx);
+          for (var i = 0; i < completions.length; i++) {
+            var charAtIdx = completions[i].charAt(idx);
+            if (charAtIdx !== _char) {
+              isInAll = false;
+            }
+          }
+          if (isInAll) {
+            mutual_part += _char;
+            return true;
+          }
+          return false;
+        };
 
-				//determine mutual part of all properties and add to input
-				var min_length = -1;
-				for (var j = 0; j < completions.length; j++) {
-					var charLen = completions[j].length;
-					if (min_length < 0 || min_length > charLen) {
-						min_length = charLen;
-					}
-				}
+        //determine mutual part of all properties and add to input
+        var min_length = -1;
+        for (var j = 0; j < completions.length; j++) {
+          var charLen = completions[j].length;
+          if (min_length < 0 || min_length > charLen) {
+            min_length = charLen;
+          }
+        }
 
-				for (var n = 0; n < min_length; n++) {
-					if (!is_mutual_char(n)) break;
-				}
+        for (var n = 0; n < min_length; n++) {
+          if (!is_mutual_char(n)) break;
+        }
 
-				completeInputValue(mutual_part);
+        completeInputValue(mutual_part);
 
-				renderAutocomplete(evt.result_doc);
-			}
-		} else if (evt.result_doc.log) {
-			renderLog(evt.result_doc);
-		} else if (!evt.result_doc.autocomplete) {
-			//console.time("render-result-time");
-			renderResult(evt.result_doc);
-			//console.timeEnd("render-result-time");
-		}
-	});
+        renderAutocomplete(evt.result_doc);
+      }
+    } else if (evt.result_doc.log) {
+      renderLog(evt.result_doc);
+    } else if (!evt.result_doc.autocomplete) {
+      //console.time("render-result-time");
+      renderResult(evt.result_doc);
+      //console.timeEnd("render-result-time");
+    }
+  });
 
-	ServerEval.init();
+  ServerEval.init();
 });

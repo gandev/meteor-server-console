@@ -1,289 +1,290 @@
 (function() {
 
-	var VERSION = "0.5";
-	var ddp;
-	var HOST = "localhost"; //"192.168.1.102";
-	var PORT = 3000; //default like meteor
-	var currentPort;
-	var currentHost;
-	var result_sub_ready = false;
-	//local copy of server-eval metadata
-	var serverEvalVersion;
-	//constants for internal messages
-	var SERVER_STATES = {
-		UP: "connection up",
-		DOWN: "connection down",
-		_current: null
-	};
+  var VERSION = "0.5";
+  var ddp;
+  var HOST = "localhost"; //"192.168.1.102";
+  var PORT = 3000; //default like meteor
+  var currentPort;
+  var currentHost;
+  var result_sub_ready = false;
 
-	var last_crash_message;
-	var http_to_server = new XMLHttpRequest();
+  var SERVER_STATE = {
+    UP: "connection up",
+    DOWN: "connection down",
+    _current: null,
+    _expectedClientVersion: null
+  };
 
-	var result_listeners = $.Callbacks();
-	var server_state_listeners = $.Callbacks();
-	var metadata_listeners = $.Callbacks();
-	var watch_update_listeners = $.Callbacks();
-	var watch_removed_listeners = $.Callbacks();
+  var last_crash_message;
+  var http_to_server = new XMLHttpRequest();
 
-	var origin;
-	var chrome_ext_detected = !! window.location.origin.match(/^chrome-extension:\/\//);
-	var chrome_extension_loaded = false;
+  var result_listeners = $.Callbacks();
+  var server_state_listeners = $.Callbacks();
+  var metadata_listeners = $.Callbacks();
+  var watch_update_listeners = $.Callbacks();
+  var watch_removed_listeners = $.Callbacks();
 
-	var setOrigin = function() {
-		origin = HOST + ":" + PORT;
-		setupDDP();
-	};
+  var origin;
+  var chrome_ext_detected = !!window.location.origin.match(/^chrome-extension:\/\//);
+  var chrome_extension_loaded = false;
 
-	ServerEval = {
-		removeWatch: function(id) {
-			ddp.call('serverEval/removeWatch', [id]);
-		},
-		_eval: function(expr, options) {
-			ddp.call('serverEval/eval', [expr, options]);
-		},
-		execute: function(command, scope, args) {
-			ddp.call('serverEval/execute', [command, scope, args]);
-		},
-		clear: function() {
-			ddp.call('serverEval/clear');
-		},
-		init: function() {
-			initCommunication();
-		},
-		changeServer: function(host, port) {
-			var restart = false;
-			if (_.isString(host) && host !== HOST) {
-				HOST = host;
-				restart = true;
-			}
-			if (!isNaN(port) && port !== PORT) {
-				PORT = port;
-				restart = true;
-			}
-			if (restart) {
-				setOrigin();
-			}
-		},
-		currentPort: function() {
-			return currentPort;
-		},
-		currentHost: function() {
-			return currentHost;
-		},
-		listenForServerState: function(cb) {
-			server_state_listeners.add(cb);
-		},
-		listenForNewResults: function(cb) {
-			result_listeners.add(cb);
-		},
-		listenForMetadata: function(cb) {
-			metadata_listeners.add(cb);
-		},
-		listenForWatchUpdates: function(cb) {
-			watch_update_listeners.add(cb);
-		},
-		listenForWatchRemoved: function(cb) {
-			watch_removed_listeners.add(cb);
-		},
-		_serverStateChanged: function(state) {
-			server_state_listeners.fire(state);
-		},
-		_newResult: function(result_doc) {
-			result_listeners.fire(result_doc);
-		},
-		_metadataChanged: function(metadata) {
-			metadata_listeners.fire(metadata);
-		},
-		_watchChanged: function(watch_result) {
-			watch_update_listeners.fire(watch_result);
-		},
-		_watchRemoved: function(watch_result) {
-			watch_removed_listeners.fire(watch_result);
-		},
-		_isResultSubReady: function() {
-			return result_sub_ready;
-		}
-	};
+  var setOrigin = function() {
+    origin = HOST + ":" + PORT;
+    setupDDP();
+  };
 
-	//sets current connection state (UP or DOWN)
-	var setServerState = function(state) {
-		if (SERVER_STATES._current !== state) {
-			SERVER_STATES._current = state;
-			ServerEval._serverStateChanged({
-				state_txt: state + " [" + (currentHost || 'localhost') + ':' + (currentPort || PORT) + "]",
-				state_type: state === SERVER_STATES.UP ? "SUCCESS" : "ERROR"
-			});
-		}
-	};
+  ServerEval = {
+    removeWatch: function(id) {
+      ddp.call('serverEval/removeWatch', [id]);
+    },
+    _eval: function(expr, options) {
+      ddp.call('serverEval/eval', [expr, options]);
+    },
+    execute: function(command, scope, args) {
+      ddp.call('serverEval/execute', [command, scope, args]);
+    },
+    clear: function() {
+      ddp.call('serverEval/clear');
+    },
+    init: function() {
+      initCommunication();
+    },
+    changeServer: function(host, port) {
+      var restart = false;
+      if (_.isString(host) && host !== HOST) {
+        HOST = host;
+        restart = true;
+      }
+      if (!isNaN(port) && port !== PORT) {
+        PORT = port;
+        restart = true;
+      }
+      if (restart) {
+        setOrigin();
+      }
+    },
+    currentPort: function() {
+      return currentPort;
+    },
+    currentHost: function() {
+      return currentHost;
+    },
+    listenForServerState: function(cb) {
+      server_state_listeners.add(cb);
+    },
+    listenForNewResults: function(cb) {
+      result_listeners.add(cb);
+    },
+    listenForMetadata: function(cb) {
+      metadata_listeners.add(cb);
+    },
+    listenForWatchUpdates: function(cb) {
+      watch_update_listeners.add(cb);
+    },
+    listenForWatchRemoved: function(cb) {
+      watch_removed_listeners.add(cb);
+    },
+    _serverStateChanged: function(state) {
+      server_state_listeners.fire(state);
+    },
+    _newResult: function(result_doc) {
+      result_listeners.fire(result_doc);
+    },
+    _metadataChanged: function(metadata) {
+      metadata_listeners.fire(metadata);
+    },
+    _watchChanged: function(watch_result) {
+      watch_update_listeners.fire(watch_result);
+    },
+    _watchRemoved: function(watch_result) {
+      watch_removed_listeners.fire(watch_result);
+    },
+    _isResultSubReady: function() {
+      return result_sub_ready;
+    }
+  };
 
-	//handler for a successful ddp connection
-	//starts subscriptions and server polling
-	var setupDataTransfer = function() {
-		currentPort = PORT;
-		currentHost = HOST;
-		setServerState(SERVER_STATES.UP);
+  //sets current connection state (UP or DOWN)
+  var setServerState = function(state) {
+    if (SERVER_STATE._current !== state) {
+      SERVER_STATE._current = state;
+      ServerEval._serverStateChanged({
+        state_txt: state + " [" + (currentHost || 'localhost') + ':' + (currentPort || PORT) + "]",
+        state_type: state === SERVER_STATE.UP ? "SUCCESS" : "ERROR"
+      });
+    }
+  };
 
-		last_crash_message = null;
+  //handler for a successful ddp connection
+  //starts subscriptions and server polling
+  var setupDataTransfer = function() {
+    currentPort = PORT;
+    currentHost = HOST;
+    setServerState(SERVER_STATE.UP);
 
-		//3 second timeout than assume that server doesn't use server-eval
-		var metaDataTimeout = setTimeout(function() {
-			ServerEval._serverStateChanged({
-				state_txt: 'server-eval missing on server: [' + currentHost + ':' + currentPort + ']',
-				state_type: "ERROR"
-			});
-		}, 3000);
+    last_crash_message = null;
 
-		//watch ServerEval.metadata()
-		ddp.watch("server-eval-metadata", function(doc, msg) {
-			if (msg === "added" || msg === "changed") {
-				clearTimeout(metaDataTimeout);
-				serverEvalVersion = doc.version;
-				if (serverEvalVersion !== VERSION) {
-					ServerEval._serverStateChanged({
-						state_txt: 'server-eval [' + currentHost + ':' + currentPort + ']' + " wrong version, expected: " + VERSION + " found: " + serverEvalVersion,
-						state_type: "ERROR"
-					});
-				}
-				ServerEval._metadataChanged(doc);
-			}
-		});
-		ddp.subscribe("server-eval-metadata");
+    //3 second timeout than assume that server doesn't use server-eval
+    var metaDataTimeout = setTimeout(function() {
+      ServerEval._serverStateChanged({
+        state_txt: 'server-eval missing on server: [' + currentHost + ':' + currentPort + ']',
+        state_type: "ERROR"
+      });
+    }, 3000);
 
-		//watch ServerEval.watch()
-		ddp.watch("server-eval-watch", function(doc, msg) {
-			if (msg === "added" || msg === "changed") {
-				var watch_result = JSON.parse(doc.result);
-				watch_result._id = doc._id;
-				ServerEval._watchChanged({
-					watch_result: watch_result
-				});
-			} else if (msg === "removed") {
-				ServerEval._watchRemoved({
-					watch_id: doc._id
-				});
-			}
-		});
-		ddp.subscribe("server-eval-watch");
+    //watch ServerEval.metadata()
+    ddp.watch("server-eval-metadata", function(doc, msg) {
+      if (msg === "added" || msg === "changed") {
+        clearTimeout(metaDataTimeout);
+        var version = doc.expectedClientVersion || doc.version; /*TODO backcompat*/
+        if (version && SERVER_STATE._expectedClientVersion !== version && version !== VERSION) {
+          SERVER_STATE._expectedClientVersion = version;
 
-		//watch ServerEval.results()
-		ddp.watch("server-eval-results", function(doc, msg) {
-			if (msg === "added") {
-				ServerEval._newResult({
-					result_doc: doc
-				});
-			}
-		});
+          ServerEval._serverStateChanged({
+            state_txt: 'server-eval [' + currentHost + ':' + currentPort + ']' + " wrong version, expected: " + VERSION + " found: " + version,
+            state_type: "ERROR"
+          });
+        }
+        ServerEval._metadataChanged(doc);
+      }
+    });
+    ddp.subscribe("server-eval-metadata");
 
-		ddp.subscribe("server-eval-results").then(function() {
-			result_sub_ready = true;
-		}, function() {
-			result_sub_ready = false;
-		});
+    //watch ServerEval.watch()
+    ddp.watch("server-eval-watch", function(doc, msg) {
+      if (msg === "added" || msg === "changed") {
+        var watch_result = JSON.parse(doc.result);
+        watch_result._id = doc._id;
+        ServerEval._watchChanged({
+          watch_result: watch_result
+        });
+      } else if (msg === "removed") {
+        ServerEval._watchRemoved({
+          watch_id: doc._id
+        });
+      }
+    });
+    ddp.subscribe("server-eval-watch");
 
-		// poll server and try reinit when server down
-		var checkConnectionInterval = setInterval(function() {
-			if (ddp.sock.readyState !== 1 /* 1 = CONNECTED, 3 = CLOSED */ ) {
-				clearInterval(checkConnectionInterval);
-				setServerState(SERVER_STATES.DOWN);
-				publishServerCrashErrorMessage();
-				setupDDP();
-			} else {
-				ddp.send({
-					"ping": "h"
-				});
-			}
-		}, 300);
-	};
+    //watch ServerEval.results()
+    ddp.watch("server-eval-results", function(doc, msg) {
+      if (msg === "added") {
+        ServerEval._newResult({
+          result_doc: doc
+        });
+      }
+    });
 
-	var createCrashMessage = function(message) {
-		if (message.match(/^Your app is crashing/) && last_crash_message !== message) {
-			last_crash_message = message;
-		} else {
-			return;
-		}
+    ddp.subscribe("server-eval-results").then(function() {
+      result_sub_ready = true;
+    }, function() {
+      result_sub_ready = false;
+    });
 
-		ServerEval._newResult({
-			result_doc: {
-				eval_time: Date.now(),
-				log: true,
-				err: true,
-				crash: true,
-				result: {
-					message: last_crash_message
-				}
-			}
-		});
-	};
+    // poll server and try reinit when server down
+    var checkConnectionInterval = setInterval(function() {
+      if (ddp.sock.readyState !== 1 /* 1 = CONNECTED, 3 = CLOSED */ ) {
+        clearInterval(checkConnectionInterval);
+        setServerState(SERVER_STATE.DOWN);
+        publishServerCrashErrorMessage();
+        setupDDP();
+      } else {
+        ddp.send({
+          "ping": "h"
+        });
+      }
+    }, 300);
+  };
 
-	var requestCrashPage = function() {
-		http_to_server.onload = function() {
-			createCrashMessage(this.responseText);
-		};
-		http_to_server.open("post", 'http://' + origin + "/", true);
-		http_to_server.timeout = 1000;
-		http_to_server.send();
-	};
+  var createCrashMessage = function(message) {
+    if (message.match(/^Your app is crashing/) && last_crash_message !== message) {
+      last_crash_message = message;
+    } else {
+      return;
+    }
 
-	var publishServerCrashErrorMessage = function() {
-		if (window.MeteorConsole_getCrashMessage) {
-			//workaround because of CORS and crash page
-			window.MeteorConsole_getCrashMessage('http://' + origin, function(msg) {
-				if (!msg) {
-					requestCrashPage();
-					return;
-				}
-				createCrashMessage(msg);
-			});
-		} else {
-			requestCrashPage();
-		}
-	};
+    ServerEval._newResult({
+      result_doc: {
+        eval_time: Date.now(),
+        log: true,
+        err: true,
+        crash: true,
+        result: {
+          message: last_crash_message
+        }
+      }
+    });
+  };
 
-	var reconnectTimeout;
+  var requestCrashPage = function() {
+    http_to_server.onload = function() {
+      createCrashMessage(this.responseText);
+    };
+    http_to_server.open("post", 'http://' + origin + "/", true);
+    http_to_server.timeout = 1000;
+    http_to_server.send();
+  };
 
-	//connect to the server or wait until a connection attempt is successful
-	var setupDDP = function() {
-		if (ddp) {
-			clearTimeout(reconnectTimeout);
-			ddp.close();
-		}
-		ddp = new MeteorDdp("ws://" + origin + "/websocket");
+  var publishServerCrashErrorMessage = function() {
+    if (window.MeteorConsole_getCrashMessage) {
+      //workaround because of CORS and crash page
+      window.MeteorConsole_getCrashMessage('http://' + origin, function(msg) {
+        if (!msg) {
+          requestCrashPage();
+          return;
+        }
+        createCrashMessage(msg);
+      });
+    } else {
+      requestCrashPage();
+    }
+  };
 
-		ddp.connect().then(function() {
-			clearTimeout(reconnectTimeout);
-			setupDataTransfer();
-		}, /* no connection, try again */ function() {
-			currentPort = PORT;
-			reconnectTimeout = setTimeout(function() {
-				setServerState(SERVER_STATES.DOWN);
-				publishServerCrashErrorMessage();
-				initCommunication();
-			}, 1000);
-		});
-	};
+  var reconnectTimeout;
 
-	var initCommunication = function() {
-		if (chrome_ext_detected && window.MeteorConsole_getOrigin && !chrome_extension_loaded) {
-			chrome_extension_loaded = true;
-			window.MeteorConsole_getOrigin(function(origin) {
-				var origin_match = [];
-				if (origin) {
-					origin_match = origin.match(/^http:\/\/([\w\.-]*):(\d*)/);
-				}
-				if (origin_match && origin_match.length == 3) {
-					HOST = origin_match[1];
-					PORT = origin_match[2];
-				}
-				setOrigin();
-			});
-		} else if (!chrome_ext_detected || chrome_ext_detected && chrome_extension_loaded) {
-			setOrigin();
-		} else {
-			//startup delay, to wait until chrome-extension loaded
-			setTimeout(function() {
-				initCommunication();
-			}, 500);
-		}
-	};
+  //connect to the server or wait until a connection attempt is successful
+  var setupDDP = function() {
+    if (ddp) {
+      clearTimeout(reconnectTimeout);
+      ddp.close();
+    }
+    ddp = new MeteorDdp("ws://" + origin + "/websocket");
+
+    ddp.connect().then(function() {
+      clearTimeout(reconnectTimeout);
+      setupDataTransfer();
+    }, /* no connection, try again */ function() {
+      currentPort = PORT;
+      reconnectTimeout = setTimeout(function() {
+        setServerState(SERVER_STATE.DOWN);
+        publishServerCrashErrorMessage();
+        initCommunication();
+      }, 1000);
+    });
+  };
+
+  var initCommunication = function() {
+    if (chrome_ext_detected && window.MeteorConsole_getOrigin && !chrome_extension_loaded) {
+      chrome_extension_loaded = true;
+      window.MeteorConsole_getOrigin(function(origin) {
+        var origin_match = [];
+        if (origin) {
+          origin_match = origin.match(/^http:\/\/([\w\.-]*):(\d*)/);
+        }
+        if (origin_match && origin_match.length == 3) {
+          HOST = origin_match[1];
+          PORT = origin_match[2];
+        }
+        setOrigin();
+      });
+    } else if (!chrome_ext_detected || chrome_ext_detected && chrome_extension_loaded) {
+      setOrigin();
+    } else {
+      //startup delay, to wait until chrome-extension loaded
+      setTimeout(function() {
+        initCommunication();
+      }, 500);
+    }
+  };
 
 })();
